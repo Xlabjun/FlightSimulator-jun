@@ -19,6 +19,9 @@
 #include <time.h>       /* time */
 #include <algorithm>
 #include <vector>
+#include <processing>;
+import objimp.*;
+import peasy.*;
 using namespace std;
 
 float xAxisRotation, yAxisRotation;
@@ -225,7 +228,7 @@ void callBackInit(){
 
 void printIntro(){
 		printf("\
-	\n%s\n WELCOME TO ERIK'S PARTICLE SIMULATOR\n%s\n",
+	\n%s\n WELCOME TO ERIK'S FLIGHT (AND PARTICLE) SIMULATOR\n%s\n",
 	" ====================================",
 	" ====================================");
 

@@ -32,7 +32,7 @@ Particle::Particle(State state,bool frictionEnable,bool setAntiGrav,bool setRubb
 }
 
 void Particle::update(Point3D mousePos){
-    cout<<mVel.mY*mSpeed<<"\n";
+    //cout<<mVel.mY*mSpeed<<"\n";
     if (initState!=PAUSED){
         age++;
 
