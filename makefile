@@ -15,7 +15,7 @@ else
 	endif
 endif
 
-PROGRAM_NAME=flightsim
+PROGRAM_NAME=flightsimulator
 
 run: $(PROGRAM_NAME)
 	./$(PROGRAM_NAME)$(EXEEXT)

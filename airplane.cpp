@@ -20,7 +20,7 @@ Airplane::Airplane(State state){
 
     cDull=7; 
     gravity= 0.00001; 
-    friction=0.95;//frictionEnabled=frictionEnable;
+    friction=0.65;frictionEnabled=true;//frictionEnabled=frictionEnable;
     cameraInThisParticle=false;
     
     //position is within 1000x1000 window, direction is stationary
@@ -31,6 +31,11 @@ Airplane::Airplane(State state){
 void Airplane::update(){
     //cout<<initState;
     if (initState!=PAUSED){
+
+        mRot.mX+=mAcc.mY*100;
+		mRot.mY+=mAcc.mX*50;
+		mRot.mZ-=mAcc.mX*50;
+
         //cout<<mPos.mY<<" before updated \n";
         age++;
 
@@ -39,7 +44,7 @@ void Airplane::update(){
         
 
         if (mPos.mY<0     )       {//bounce off ground
-            mVel.mY=-mVel.mY/3;
+            mVel.mY=-mVel.mY/2;mAcc.mY=mAcc.mY/8;
             if (mPos.mY<0){
                 if (frictionEnabled)mVel.multiply(friction);
                 mPos.mY=1;

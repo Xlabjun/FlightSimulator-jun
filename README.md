@@ -48,8 +48,8 @@ Examples:
 * Textures:
 1. Implement a variety of textures for the airplane, terrian, etc. (Final)
 
-* Terrian:
-1. Terrian generation (Final)
+* Terrain:
+1. Terrain generation (Final)
 
 * Physics improvements
 1. Collision detection (Final)

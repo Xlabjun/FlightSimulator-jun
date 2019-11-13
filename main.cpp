@@ -1,3 +1,5 @@
+//Erik, Connor, Akram
+
 #ifdef __APPLE__
 #  define GL_SILENCE_DEPRECATION
 #  include <OpenGL/gl.h>
@@ -129,7 +131,7 @@ std::vector< Vertex > LoadOBJ( std::istream& in )
 //*******************************************************************************wavefront .obj loader code ends here
 
 float xAxisRotation, yAxisRotation;
-bool frictionEnabled = false, lightingEnabled=false, cameraInNextParticle=false, cameraCurrentlyInParticle=false;
+bool frictionEnabled = false, lightingEnabled=true, cameraInNextParticle=false, cameraCurrentlyInParticle=false;
 
 GLdouble camOffset[] = { 0, 7, 25 }; 
 GLdouble centerOffset[] = { 0, 3, 0 };
@@ -177,7 +179,11 @@ void drawAirplane(){
 
         
         // object
-        glColor3ub( 255, 50, 50 );
+        //glColor3ub( 255, 50, 50 );
+        glRotatef(airplane.mRot.mX,1,0,0);
+		glRotatef(airplane.mRot.mY,0,1,0);
+		glRotatef(airplane.mRot.mZ,0,0,1);
+
         glEnableClientState( GL_VERTEX_ARRAY );
         glEnableClientState( GL_TEXTURE_COORD_ARRAY );
         glEnableClientState( GL_NORMAL_ARRAY );
@@ -238,7 +244,7 @@ void display(void) {
 }
 
 void handleKeyboard(unsigned char key, int _x, int _y) {
-    if (key == 'x') {
+    if (key == 27) {//escape key
         exit(0);
 	
 	} else if (key == '.') {
@@ -359,7 +365,8 @@ void callBackInit(){
 	glutTimerFunc(0, FPS, 0);
 	glEnable( GL_CULL_FACE );
 	glCullFace( GL_BACK );
-	glPolygonMode( GL_FRONT, GL_FILL );
+	    glPolygonMode( GL_FRONT, GL_FILL );
+    glPolygonMode( GL_BACK, GL_LINE );
 }
 
 void printIntro(){
@@ -385,23 +392,23 @@ void printIntro(){
 
 	, "FUNCTION",  "Do\\Increase Key", "Decrease Key"
 
-	, "Exit Program", "x", ""
+	, "Exit Program", "ESC", ""
 
 
-	, "Plane move left/right", "a", "d"
-	, "Plane move up/down", "s", "w"
-	, "Plane move towards/away", "q", "e"
+	, "Yaw left/right", "A", "D"
+	, "Pitch up/down", "S", "W"
+	, "Roll left/right", "Q", "E"
 
-	, "Rotate around x-axis", "up", "down"
-	, "Rotate around y-axis", "right", "left"
+	, "Thrust up/down", "X", "Z"
+	, "Fire guns/rockets", "LMB", "RMB"
 
-	, "Camera left/right", "m", "."
-	, "Camera up/down", "k", ","
-	, "Camera in/out of scene", "i", "o"
+	, "Camera left/right", "M", "."
+	, "Camera up/down", "K", ","
+	, "Camera in/out of scene", "I", "O"
 
-	, "Lighting enable/disable", "l", ""
-	, "Put camera into next particle", "c", ""
-	, "Add\\Delete particles", "v", "b");
+	, "Lighting enable/disable", "L", ""
+	, "Put camera into next particle", "C", ""
+	, "Add\\Delete particles", "V", "B");
 
 	printf("\nStudent #: 400062982, name: Erik Kredatus\n\
 	Assignment 2 for 3GC3\n\n\
@@ -428,7 +435,7 @@ void reshape(int w, int h){
 }
 
 int main(int argc, char** argv){
-    std::ifstream ifile( "elepham.obj" );
+    std::ifstream ifile( "data/F16C_US_LOD1_v25.obj" );
     model = LoadOBJ( ifile );
 
     //cout<<(model[0].position==nullptr);
@@ -439,7 +446,7 @@ int main(int argc, char** argv){
 	
 	
     glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
+	glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE);
 	//glEnable(GL_DEPTH_TEST);
 	//glFrustum(-2, 2, -1.0, 1.0, 2.0, 100.0);
 
@@ -456,17 +463,32 @@ int main(int argc, char** argv){
 
     // Enable lighting here
 	//glEnable(GL_DEPTH_TEST);
-    //glEnable(GL_LIGHTING);
+    if (lightingEnabled) glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
     glEnable(GL_LIGHT1);
 
 	glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
+
     glCullFace(GL_BACK);
     glShadeModel(GL_SMOOTH);
 
 
+    glPolygonMode( GL_FRONT, GL_FILL );
+    glPolygonMode( GL_BACK, GL_LINE );
 
     glutMainLoop();
     return 0;
 }
+/*   
+ // set up "headlamp"-like light
+    glShadeModel( GL_SMOOTH );
+    glEnable( GL_COLOR_MATERIAL );
+    glColorMaterial( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE ) ;
+    glEnable( GL_LIGHTING );
+    glEnable( GL_LIGHT0 );
+    glMatrixMode( GL_MODELVIEW );
+    glLoadIdentity();
+    GLfloat position[] = { 0, 0, 1, 0 };
+    glLightfv( GL_LIGHT0, GL_POSITION, position );
+
+*/
