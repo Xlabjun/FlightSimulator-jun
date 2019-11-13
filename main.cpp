@@ -9,6 +9,10 @@
 #  include <GL/freeglut.h>
 #endif
 
+#include <fstream>
+#include <sstream>
+#include "glm/gtx/component_wise.hpp"
+#include "glm/glm.hpp"
 #include <math.h>
 #include <iostream>
 #include "mathLib3D.h"
@@ -16,13 +20,113 @@
 #include "airplane.h"
 #include <stdio.h>      /* printf, scanf, puts, NULL */
 #include <stdlib.h>     /* srand, rand */
+#include <string.h>
 #include <time.h>       /* time */
 #include <algorithm>
 #include <vector>
-#include <processing>;
-import objimp.*;
-import peasy.*;
+
+
 using namespace std;
+
+struct Vertex
+{
+    glm::vec3 position;
+    glm::vec2 texcoord;
+    glm::vec3 normal;
+};
+
+struct VertRef
+{
+    VertRef( int v, int vt, int vn ) : v(v), vt(vt), vn(vn) { }
+    int v, vt, vn;
+};
+
+std::vector< Vertex > model;
+//*******************************************************************************wavefront .obj loader code begins
+std::vector< Vertex > LoadOBJ( std::istream& in )
+{
+    std::vector< Vertex > verts;
+
+    std::vector< glm::vec4 > positions( 1, glm::vec4( 0, 0, 0, 0 ) );
+    std::vector< glm::vec3 > texcoords( 1, glm::vec3( 0, 0, 0 ) );
+    std::vector< glm::vec3 > normals( 1, glm::vec3( 0, 0, 0 ) );
+    std::string lineStr;
+    while( std::getline( in, lineStr ) )
+    {
+        std::istringstream lineSS( lineStr );
+        std::string lineType;
+        lineSS >> lineType;
+
+        // vertex
+        if( lineType == "v" )
+        {
+            float x = 0, y = 0, z = 0, w = 1;
+            lineSS >> x >> y >> z >> w;
+            positions.push_back( glm::vec4( x, y, z, w ) );
+        }
+
+        // texture
+        if( lineType == "vt" )
+        {
+            float u = 0, v = 0, w = 0;
+            lineSS >> u >> v >> w;
+            texcoords.push_back( glm::vec3( u, v, w ) );
+        }
+
+        // normal
+        if( lineType == "vn" )
+        {
+            float i = 0, j = 0, k = 0;
+            lineSS >> i >> j >> k;
+            normals.push_back( glm::normalize( glm::vec3( i, j, k ) ) );
+        }
+
+        // polygon
+        if( lineType == "f" )
+        {
+            std::vector< VertRef > refs;
+            std::string refStr;
+            while( lineSS >> refStr )
+            {
+                std::istringstream ref( refStr );
+                std::string vStr, vtStr, vnStr;
+                std::getline( ref, vStr, '/' );
+                std::getline( ref, vtStr, '/' );
+                std::getline( ref, vnStr, '/' );
+                int v = atoi( vStr.c_str() );
+                int vt = atoi( vtStr.c_str() );
+                int vn = atoi( vnStr.c_str() );
+                v  = (  v >= 0 ?  v : positions.size() +  v );
+                vt = ( vt >= 0 ? vt : texcoords.size() + vt );
+                vn = ( vn >= 0 ? vn : normals.size()   + vn );
+                refs.push_back( VertRef( v, vt, vn ) );
+            }
+
+            // triangulate, assuming n>3-gons are convex and coplanar
+            for( size_t i = 1; i+1 < refs.size(); ++i )
+            {
+                const VertRef* p[3] = { &refs[0], &refs[i], &refs[i+1] };
+
+                // http://www.opengl.org/wiki/Calculating_a_Surface_Normal
+                glm::vec3 U( positions[ p[1]->v ] - positions[ p[0]->v ] );
+                glm::vec3 V( positions[ p[2]->v ] - positions[ p[0]->v ] );
+                glm::vec3 faceNormal = glm::normalize( glm::cross( U, V ) );
+
+                for( size_t j = 0; j < 3; ++j )
+                {
+                    Vertex vert;
+                    vert.position = glm::vec3( positions[ p[j]->v ] );
+                    vert.texcoord = glm::vec2( texcoords[ p[j]->vt ] );
+                    vert.normal = ( p[j]->vn != 0 ? normals[ p[j]->vn ] : faceNormal );
+                    verts.push_back( vert );
+                }
+            }
+        }
+    }
+
+    return verts;
+}
+//*******************************************************************************wavefront .obj loader code ends here
 
 float xAxisRotation, yAxisRotation;
 bool frictionEnabled = false, lightingEnabled=false, cameraInNextParticle=false, cameraCurrentlyInParticle=false;
@@ -48,8 +152,6 @@ void drawParticle(Particle p) {
 		
 	glPopMatrix();
 }
- 
-
 void drawPlane(){
 	glBegin(GL_QUADS);
 		glColor3f (1,    1,  1);
@@ -59,14 +161,48 @@ void drawPlane(){
 		glVertex3f( 500, 0,  -500);
 	glEnd();
 }
+void drawAirplane(){
+   
+        glTranslatef(airplane.mPos.mX,airplane.mPos.mY,airplane.mPos.mZ);
+            
+    //glScalef(10,10,10);
+    //glRotatef(airplane.mRot.mX, 1,0,0);
+    
+    //glPointSize(3.0);
+        //glMatrixMode( GL_MODELVIEW );
+    //glLoadIdentity();
+    {
+        //glRotatef( curRot.x % 360, 0, 1, 0 );
+        //glRotatef( -curRot.y % 360, 1, 0, 0 );
 
+        
+        // object
+        glColor3ub( 255, 50, 50 );
+        glEnableClientState( GL_VERTEX_ARRAY );
+        glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+        glEnableClientState( GL_NORMAL_ARRAY );
+        glVertexPointer( 3, GL_FLOAT, sizeof(Vertex), &model[0].position );
+        glTexCoordPointer( 2, GL_FLOAT, sizeof(Vertex), &model[0].texcoord );
+        glNormalPointer( GL_FLOAT, sizeof(Vertex), &model[0].normal );
+        glDrawArrays( GL_TRIANGLES, 0, model.size() );
+        glDisableClientState( GL_VERTEX_ARRAY );
+        glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+        glDisableClientState( GL_NORMAL_ARRAY );
+
+        // bounding cube
+
+        glColor3ub( 50, 50, 50 );
+        glutWireCube( 7 );
+  
+    }
+}
 void display(void) {
 
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 	
 	glLoadIdentity();
 
-	
+	//glMatrixMode( GL_MODELVIEW );
 	gluLookAt(airplane.mPos.mX+camOffset[0],airplane.mPos.mY+camOffset[1],airplane.mPos.mZ+camOffset[2], airplane.mPos.mX,airplane.mPos.mY+centerOffset[1],airplane.mPos.mZ, 0,1,0);
 	
 	/*glTranslatef(-camOffset[0],-camOffset[1],-camOffset[2]);//ensure rotation at 0,0,0
@@ -92,10 +228,10 @@ void display(void) {
 	glPopMatrix();
 
 	airplane.update();
-	airplane.draw();
 
-
-
+	glPushMatrix();
+		drawAirplane();
+	glPopMatrix();
 	
 	glutSwapBuffers();//swap buffers for smooth animation
 	glutPostRedisplay();
@@ -119,17 +255,17 @@ void handleKeyboard(unsigned char key, int _x, int _y) {
         camOffset[2] +=10;
 
 	} else if (key == 'd') {
-        airplane.mAcc.mX+=0.01;
+        airplane.mAcc.mX+=0.001;
     } else if (key == 'a') {
-        airplane.mAcc.mX-=0.01;
+        airplane.mAcc.mX-=0.001;
     } else if (key == 'w') {
-		airplane.mAcc.mY-=0.01;
+		airplane.mAcc.mY-=0.001;
     } else if (key == 's') {
-        airplane.mAcc.mY+=0.1;
+        airplane.mAcc.mY+=0.001;
     } else if (key == 'q') {
-        airplane.mAcc.mZ-=1;
+        airplane.mAcc.mZ-=.001;
     } else if (key == 'e') {
-        airplane.mAcc.mZ+=1;
+        airplane.mAcc.mZ+=.001;
 
 	} else if (key == 'j') {
         //lightPos[1][0] +=15;
@@ -194,7 +330,7 @@ void handleKeyboard(unsigned char key, int _x, int _y) {
 		particleArr.erase(particleArr.begin()+rand()%particleArr.size());
 	} 
 }
-void SpecialKeys(int key, int x, int y)  {
+void SpecialKeys(int key, int x, int y) {
 	switch (key){
 		case GLUT_KEY_LEFT:
 			yAxisRotation--;
@@ -292,6 +428,11 @@ void reshape(int w, int h){
 }
 
 int main(int argc, char** argv){
+    std::ifstream ifile( "elepham.obj" );
+    model = LoadOBJ( ifile );
+
+    //cout<<(model[0].position==nullptr);
+
 	printIntro();
 	srand(time(0));
 	//generate an array of particles slightly smaller than capacity to avoid resizing array operation in case we want to add particles
@@ -323,6 +464,8 @@ int main(int argc, char** argv){
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glShadeModel(GL_SMOOTH);
+
+
 
     glutMainLoop();
     return 0;

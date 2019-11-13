@@ -34,7 +34,6 @@ public:
     float mSpeed;
     void update();
     void slowDown();
-    void draw();
     void loadFields(int winWidth, int winHeight);
     float forceFunction(float dist);
     GLfloat materialShiny,*materialAmbient, *materialDiffuse, *materialSpecular;

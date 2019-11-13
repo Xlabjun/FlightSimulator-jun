@@ -11,7 +11,7 @@ using namespace std;
 Particle::Particle(){};//default constructor, not used
 
 Particle::Particle(State state,bool frictionEnable,bool setAntiGrav,bool setRubber){
-    antiGrav=setAntiGrav;rubber=setRubber;
+    antiGrav=false;rubber=false;
 
     initState=state;
     mPos=Point3D(0,0,0); 

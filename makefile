@@ -21,7 +21,7 @@ run: $(PROGRAM_NAME)
 	./$(PROGRAM_NAME)$(EXEEXT)
 
 $(PROGRAM_NAME): main.o particle.o airplane.o mathLib3D.o
-	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
+	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS) -I./glm/glm.hpp
 
 FORCE: ;
 
