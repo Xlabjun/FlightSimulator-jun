@@ -371,7 +371,7 @@ void callBackInit(){
 
 void printIntro(){
 		printf("\
-	\n%s\n WELCOME TO ERIK'S FLIGHT (AND PARTICLE) SIMULATOR\n%s\n",
+	\n%s\n WELCOME TO ERIK, AKRAM AND CONNOR'S FLIGHT (AND PARTICLE) SIMULATOR\n%s\n",
 	" ====================================",
 	" ====================================");
 
@@ -411,14 +411,11 @@ void printIntro(){
 	, "Add\\Delete particles", "V", "B");
 
 	printf("\nStudent #: 400062982, name: Erik Kredatus\n\
-	Assignment 2 for 3GC3\n\n\
-	Extra additions: (check SpecialKeys() and HandleKeyboard() key input methods as well as the controls above): \n\
-	- able to not only rotate scene but also move camera aroudn scene with 6 degrees of freedom\n\
-	- velocity and position for each particle, combining speed and direction to simulate the effects of inertia and momentum\n\
-	- camera moved into next initialized particle by pressing 'c'\n\
-	- added rubber and antiGrav particles randomly spawning\n\
-	- add a new particle to the start of the list with 'v' permanently increasing particle count at any one time\n\
-	- shorten the particle spawn list permanently decreasing particle count at any one time with 'b'\n\
+	\nStudent #: 4_____________, name: Akram Elwazani\n\
+	\nStudent #: 4_____________, name: Connor Hewick\n\n\
+	Final Project for 3GC3\n\n\
+	Additions: (check SpecialKeys() and HandleKeyboard() key input methods as well as the controls above): \n\
+	- velocity and position for aircraft, combining speed and direction to simulate the effects of inertia and momentum\n\
 	");
 }
 
