@@ -446,7 +446,7 @@ int main(int argc, char** argv){
 
     glutInitWindowSize(1000,1000);
     glutInitWindowPosition(50,50);
-    int window=glutCreateWindow("Assignment 2 Particle Simulator");
+    int window=glutCreateWindow("Flight Simulator");
 	callBackInit();
 	
 	glutReshapeFunc(reshape);
