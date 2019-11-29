@@ -133,11 +133,11 @@ std::vector< Vertex > LoadOBJ( std::istream& in )
 float xAxisRotation, yAxisRotation;
 bool frictionEnabled = false, lightingEnabled=true, cameraInNextParticle=false, cameraCurrentlyInParticle=false;
 
-GLdouble camOffset[] = { 0, 7, 25 }; 
+GLdouble camOffset[] = { 0, 7, 250 }; 
 GLdouble centerOffset[] = { 0, 3, 0 };
 
 int gWidth=1000, gHeight=1000;
-vector<Particle> particleArr(rand()%1000+2000);//2000-3000 particle capacity  rand()%1000+3000
+vector<Particle> particleArr(0);//2000-3000 particle capacity  rand()%1000+3000
 Point3D mousePos;
 State state = NEUTRAL;
 Airplane airplane=Airplane(state);
@@ -157,6 +157,7 @@ void drawParticle(Particle p) {
 void drawPlane(){
 	glBegin(GL_QUADS);
 		glColor3f (1,    1,  1);
+        glNormal3f(0,1,0);
 		glVertex3f(-500, 0, -500);
 		glVertex3f(-500, 0,  500);
 		glVertex3f( 500, 0,  500);
@@ -197,8 +198,7 @@ void drawAirplane(){
 
         // bounding cube
 
-        glColor3ub( 50, 50, 50 );
-        glutWireCube( 7 );
+
   
     }
 }
@@ -246,7 +246,7 @@ void display(void) {
 void handleKeyboard(unsigned char key, int _x, int _y) {
     if (key == 27) {//escape key
         exit(0);
-	
+    
 	} else if (key == '.') {
         camOffset[0] +=15;
     } else if (key == 'm') {
@@ -268,9 +268,9 @@ void handleKeyboard(unsigned char key, int _x, int _y) {
 		airplane.mAcc.mY-=0.001;
     } else if (key == 's') {
         airplane.mAcc.mY+=0.001;
-    } else if (key == 'q') {
-        airplane.mAcc.mZ-=.001;
     } else if (key == 'e') {
+        airplane.mAcc.mZ-=.001;
+    } else if (key == 'q') {
         airplane.mAcc.mZ+=.001;
 
 	} else if (key == 'j') {
@@ -424,7 +424,7 @@ void reshape(int w, int h){
 	gHeight = h;
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluPerspective(-h*5,h/w,0.01f ,h*55);
+	gluPerspective(45,1,0.01f ,h*55);
 	//glOrtho(-w*2, w*2, -h*2, h*2,   -h*2, h*2);
 	glMatrixMode(GL_MODELVIEW);
 	glViewport(0, 0, w, h);
