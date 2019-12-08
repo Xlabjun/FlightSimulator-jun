@@ -57,7 +57,7 @@ void Particle::update(Point3D mousePos){
         
         if (!antiGrav) mVel.mY-=gravity;    //if antigrav, gravity doesnt affect
       
-        //cout<<"\nmDirY: "<<mDir.mY;
+        //cout<<"\nmRotY: "<<mRot.mY;
         
     }
 }

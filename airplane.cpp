@@ -19,7 +19,7 @@ Airplane::Airplane(State state){
     mRot=Vec3D(270,0,0);
 
     cDull=7; 
-    gravity= 0.00001; 
+    gravity= 0.0000001; 
     friction=0.65;frictionEnabled=true;//frictionEnabled=frictionEnable;
     cameraInThisParticle=false;
     
@@ -31,10 +31,10 @@ Airplane::Airplane(State state){
 void Airplane::update(){
     //cout<<initState;
     if (initState!=PAUSED){
-
-        mRot.mX+=mAcc.mY*100;
-		mRot.mY+=mAcc.mX*50;
-		mRot.mZ-=mAcc.mX*50;
+        cout<<mAcc.mY*500<<"\n";
+        mRot.mX+=(mAcc.mY+gravity*100)*700;   //pitch
+		mRot.mY+=mAcc.mX*350;   //roll
+		mRot.mZ-=mAcc.mX*650;  //yaw
 
         //cout<<mPos.mY<<" before updated \n";
         age++;
@@ -57,7 +57,7 @@ void Airplane::update(){
         //if moving so fast that jumping outside of screen borders, remake in middle of platform
 
         slowDown();
-        //cout<<"\nmDirY: "<<mDir.mY;
+        //cout<<"\nmRotY: "<<mRot.mY;
                 //cout<<mPos.mY<<" after updated \n";
     }
 }
@@ -70,4 +70,5 @@ void Airplane::slowDown(){
     mAcc.mY-=gravity;
     mAcc.multiply(0.98);
     mVel.multiply(0.995);
+    mRot.mY*=0.90;
 }

@@ -225,9 +225,10 @@ void display(void) {
 	glLoadIdentity();
 
 	//glMatrixMode( GL_MODELVIEW );
-	if (!fixedCamera)
-        gluLookAt(airplane.mPos.mX-airplane.mVel.mX,airplane.mPos.mY-airplane.mVel.mY,airplane.mPos.mZ-airplane.mVel.mZ, airplane.mPos.mX,airplane.mPos.mY+centerOffset[1],airplane.mPos.mZ, 0,1,0);
-	else {
+	if (!fixedCamera){
+    Vec3D offsetVec=airplane.mVel.normalize();
+        gluLookAt(airplane.mPos.mX-offsetVec.mX,airplane.mPos.mY-offsetVec.mY,airplane.mPos.mZ-offsetVec.mZ, airplane.mPos.mX,airplane.mPos.mY+centerOffset[1],airplane.mPos.mZ, 0,1,0);
+	}else {
         gluLookAt(airplane.mOrig.mX+camOffset[0],airplane.mOrig.mY+camOffset[1]+50,airplane.mOrig.mZ+camOffset[2]+100, 0,0,0, 0,1,0);
     }
 	/*glTranslatef(-camOffset[0],-camOffset[1],-camOffset[2]);//ensure rotation at 0,0,0
@@ -280,17 +281,17 @@ void handleKeyboard(unsigned char key, int _x, int _y) {
         camOffset[2] +=10;
 
 	} else if (key == 'd') {
-        airplane.mAcc.mX+=0.001;
+        airplane.mAcc.mX+=0.0001;
     } else if (key == 'a') {
-        airplane.mAcc.mX-=0.001;
+        airplane.mAcc.mX-=0.0001;
     } else if (key == 'w') {
-		airplane.mAcc.mY-=0.001;
+		airplane.mAcc.mY-=0.00005;
     } else if (key == 's') {
-        airplane.mAcc.mY+=0.001;
-    } else if (key == 'e') {
-        airplane.mAcc.mZ-=.001;
-    } else if (key == 'q') {
-        airplane.mAcc.mZ+=.001;
+        airplane.mAcc.mY+=0.00005;
+    } else if (key == 'x') {
+        airplane.mAcc.mZ-=.00005;
+    } else if (key == 'z') {
+        airplane.mAcc.mZ+=.00005;
 
 	} else if (key == 'j') {
         //lightPos[1][0] +=15;
@@ -392,12 +393,9 @@ void printIntro(){
 	%-32s   %-18s   %-18s\n\
 	%-32s   %-18s   %-18s\n\n\
 	%-32s   %-18s   %-18s\n\
-	%-32s   %-18s   %-18s\n\n\
 	%-32s   %-18s   %-18s\n\
 	%-32s   %-18s   %-18s\n\
 	%-32s   %-18s   %-18s\n\n\
-	%-32s   %-18s   %-18s\n\
-	%-32s   %-18s   %-18s\n\
 	%-32s   %-18s   %-18s\n\n"
 
 	, "FUNCTION",  "Do\\Increase Key", "Decrease Key"
@@ -407,18 +405,14 @@ void printIntro(){
 
 	, "Yaw left/right", "A", "D"
 	, "Pitch up/down", "S", "W"
-	, "Roll left/right", "Q", "E"
-
 	, "Thrust up/down", "X", "Z"
-	, "Fire guns/rockets", "LMB", "RMB"
 
+    , "Fixed/3rd Person Camera", "C", ""
 	, "Camera left/right", "M", "."
 	, "Camera up/down", "K", ","
 	, "Camera in/out of scene", "I", "O"
 
-	, "Lighting enable/disable", "L", ""
-	, "Put camera into next particle", "C", ""
-	, "Add\\Delete particles", "V", "B");
+	, "Lighting enable/disable", "L", "");
 
 	printf("\nStudent #: 400062982, name: Erik Kredatus\n\
 	\nStudent #: 4_____________, name: Akram Elwazani\n\
@@ -445,13 +439,13 @@ GLfloat lightPos[4] = {
      2, 300, 5, 1 
 };
 GLfloat lightDiffuses[4] = {
-     1, 1, 1, 1 
+     1, 1, 1, 0.5 
 };
 GLfloat lightSpeculars[4] = {
-    1, 1, 1, 1 
+    1, 1, 1, 0.5 
 };
 GLfloat lightAmbients[4] = {
-     1, 1, 1, 1 
+     1, 1, 1, 0.5 
 };
 void configureLighting(){
     //glEnable(GL_LIGHTING);
