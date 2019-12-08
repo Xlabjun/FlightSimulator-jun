@@ -25,10 +25,10 @@ class Particle {
 public:
     State initState;
     int gHeight, gWidth;
-    bool colorHasBeenChangedByMouseProximity, frictionEnabled, cameraInThisParticle, antiGrav, rubber;
+    bool colorHasBeenChangedByMouseProximity, cameraInThisParticle, antiGrav, rubber;
     float friction, gravity, cDull, age, ageMax;
     Particle();
-    Particle(State state,bool friction,bool antiGrav,bool rubber);
+    Particle(State state,bool antiGrav,bool rubber);
     Point3D mPos,mOrig,mRot;
     Vec3D mVel; //velocity used to combine direction and speed and add it to position
     float mColor[3];

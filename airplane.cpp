@@ -12,7 +12,7 @@ Airplane::Airplane(){};//default constructor, not used
 
 Airplane::Airplane(State state){
     initState=state;
-    mPos=Vec3D(0,50,1000);mVel=Vec3D(0,0,-3); 
+    mPos=Vec3D(0,100,500);mVel=Vec3D(0,0,-1); 
     mAcc=Vec3D(0,0,0); 
     mOrig=Vec3D(mPos.mX,mPos.mY,mPos.mZ);
 

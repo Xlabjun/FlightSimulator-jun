@@ -6,9 +6,9 @@
 #  include <OpenGL/glu.h>
 #  include <GLUT/glut.h>
 #else
-#  include <GL/gl.h>
-#  include <GL/glu.h>
-#  include <GL/freeglut.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <GL/freeglut.h>
 #endif
 
 #include <fstream>
@@ -69,7 +69,7 @@ std::vector< Vertex > LoadOBJ( std::istream& in )
             lineSS >> x >> y >> z >> w;
             positions.push_back( glm::vec4( x, y, z, w ) );
         }
-
+        
         // texture
         if( lineType == "vt" )
         {
@@ -134,13 +134,13 @@ std::vector< Vertex > LoadOBJ( std::istream& in )
 //*******************************************************************************wavefront .obj loader code ends here
 
 float xAxisRotation, yAxisRotation;
-bool frictionEnabled = false, lightingEnabled=false, cameraInNextParticle=false, cameraCurrentlyInParticle=false;
+bool lightingEnabled=false, fixedCamera=false;
 
-GLdouble camOffset[] = { 0, 7, 250 }; 
-GLdouble centerOffset[] = { 0, 3, 0 };
+GLdouble camOffset[] = { 0, 1, 2 }; 
+GLdouble centerOffset[] = { 0, 0, 0 };
 
 int gWidth=1000, gHeight=1000;
-vector<Particle> particleArr(0);//2000-3000 particle capacity  rand()%1000+3000
+vector<Particle> particleArr(1000);//2000-3000 particle capacity  rand()%1000+3000
 Point3D mousePos;
 State state = NEUTRAL;
 Airplane airplane=Airplane(state);
@@ -181,7 +181,7 @@ void drawAirplane(){
    
         glTranslatef(airplane.mPos.mX,airplane.mPos.mY,airplane.mPos.mZ);
             
-    //glScalef(10,10,10);
+    glScalef(0.1,0.1,0.1);
     //glRotatef(airplane.mRot.mX, 1,0,0);
     
     //glPointSize(3.0);
@@ -210,9 +210,6 @@ void drawAirplane(){
         glDisableClientState( GL_NORMAL_ARRAY );
 
         // bounding cube
-
-
-  
     }
 }
 void display(void) {
@@ -222,8 +219,11 @@ void display(void) {
 	glLoadIdentity();
 
 	//glMatrixMode( GL_MODELVIEW );
-	gluLookAt(airplane.mPos.mX+camOffset[0],airplane.mPos.mY+camOffset[1],airplane.mPos.mZ+camOffset[2], airplane.mPos.mX,airplane.mPos.mY+centerOffset[1],airplane.mPos.mZ, 0,1,0);
-	
+	if (!fixedCamera)gluLookAt(airplane.mPos.mX+camOffset[0],airplane.mPos.mY+camOffset[1],airplane.mPos.mZ+camOffset[2], airplane.mPos.mX,airplane.mPos.mY+centerOffset[1],airplane.mPos.mZ, 0,1,0);
+	else {
+        gluLookAt(airplane.mOrig.mX+camOffset[0],airplane.mOrig.mY+camOffset[1]+50,airplane.mOrig.mZ+camOffset[2]+100,
+            0,0,0, 0,1,0);
+                }
 	/*glTranslatef(-camOffset[0],-camOffset[1],-camOffset[2]);//ensure rotation at 0,0,0
 	glRotatef(xAxisRotation,1,0,0);	//about x axis
 	glRotatef(yAxisRotation,0,1,0); //about y axis
@@ -234,7 +234,7 @@ void display(void) {
 	for (unsigned int i=0; i<particleArr.size(); i++){ //updateAndRender loop for particles
 		particleArr[i].update(mousePos);//update
 		if (particleArr[i].age>particleArr[i].ageMax){
-			particleArr[i]=Particle(state,frictionEnabled,rand()%2,rand()%2);
+			particleArr[i]=Particle(state,rand()%2,rand()%2);
 		}
 		if (particleArr[i].initState!=PAUSED) drawParticle(particleArr[i]);//render
 	}
@@ -311,23 +311,21 @@ void handleKeyboard(unsigned char key, int _x, int _y) {
 	
 	} else if (key == 'r') {//reset
 		particleArr.clear(); particleArr=vector<Particle> (rand()%1000+3000);
-		for (int i=0; i<(int)(particleArr.capacity()/1.1); i++) particleArr[i]=Particle(PAUSED,frictionEnabled,rand()%2,rand()%2);
+		for (int i=0; i<(int)(particleArr.capacity()/1.1); i++) particleArr[i]=Particle(PAUSED,rand()%2,rand()%2);
 
 		if (state!=PAUSED) state=PAUSED;//if not pause and spacebar pressed, pause
 		else {
 			state=NEUTRAL;//else unreset and fill list again
 		}
-	} else if (key == 'f') {
-		if (!frictionEnabled) {
-			frictionEnabled=true;
-			for (unsigned int i=0; i<particleArr.size(); i++){
-				 particleArr[i].frictionEnabled=true;
-			}
+	} else if (key == 'c') {
+		if (!fixedCamera) {
+			fixedCamera=true;
+            gluLookAt(airplane.mOrig.mX+camOffset[0],airplane.mOrig.mY+camOffset[1]+99999,airplane.mOrig.mZ+camOffset[2],
+            0,0,99990, 0,1,0);
+            glutPostRedisplay();
+
 		} else {
-			frictionEnabled=false;
-			for (unsigned int i=0; i<particleArr.size(); i++){
-				particleArr[i].frictionEnabled=false;
-			}
+			fixedCamera=false;
 		}	
 		
 	} else if (key == 'l') {
@@ -336,15 +334,8 @@ void handleKeyboard(unsigned char key, int _x, int _y) {
 		} else {
 			glDisable(GL_LIGHTING); lightingEnabled=false;
 		}
-	} else if (key == 'c') {
-		if (!cameraInNextParticle){
-			cameraInNextParticle=true;
-		} else {
-			cameraInNextParticle=false;
-		}
-
     } else if (key == 'v') {
-        particleArr.push_back(Particle(state,frictionEnabled,rand()%2,rand()%2));
+        particleArr.push_back(Particle(state,rand()%2,rand()%2));
 
 	} else if (key == 'b') {//delete random particle
 		particleArr.erase(particleArr.begin()+rand()%particleArr.size());
@@ -475,7 +466,7 @@ int main(int argc, char** argv){
 	
 	glutReshapeFunc(reshape);
 	
-	for (int i=0; i<(int)(particleArr.capacity()/1.1); i++) particleArr[i]=Particle(state,frictionEnabled,rand()%2,rand()%2);
+	for (int i=0; i<(int)(particleArr.capacity()/1.1); i++) particleArr[i]=Particle(state,rand()%2,rand()%2);
 	airplane = Airplane(state);
 
     // Enable lighting here

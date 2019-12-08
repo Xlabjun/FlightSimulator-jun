@@ -10,7 +10,7 @@ using namespace std;
 
 Particle::Particle(){};//default constructor, not used
 
-Particle::Particle(State state,bool frictionEnable,bool setAntiGrav,bool setRubber){
+Particle::Particle(State state,bool setAntiGrav,bool setRubber){
     antiGrav=false;rubber=false;
 
     initState=state;
@@ -22,7 +22,6 @@ Particle::Particle(State state,bool frictionEnable,bool setAntiGrav,bool setRubb
     ageMax=rand()%300 + 70;   //age is 1s to 5s
     cDull=7; 
     gravity= 0.14; 
-    friction=0.65;frictionEnabled=frictionEnable;
     cameraInThisParticle=false;
     
     //position is within 1000x1000 window, direction is stationary
@@ -43,14 +42,11 @@ void Particle::update(Point3D mousePos){
         if (mPos.mY<0     || mPos.mY>=500)       {
             mVel.mY=-mVel.mY;
             if (mPos.mY<0){
-                if (frictionEnabled)mVel.multiply(friction);
                 mPos.mY=0;
             } else if (mPos.mY>500){
                 mPos.mY=0;
             }
         }
-        //lose speed to friction when hitting ground, unless rubber then gain some every time, and a lot if no friction
-        if (rubber)mVel.mY*=(1/friction +0.01);
 
         if (mVel.mY>gHeight/4)mVel.mY=gHeight/4;
         else if (mVel.mY<-gHeight/4)mVel.mY=-gHeight/4;
