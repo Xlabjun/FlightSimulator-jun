@@ -62,7 +62,8 @@ public:
     void minus(float x, float y, float z);
     void plus(float x, float y, float z);
     void set(float x, float y, float z);
-
+    Vec3D neg();
+    
     Point3D movePoint(Point3D source);
     
     static Vec3D createVector(Point3D p1, Point3D p2);

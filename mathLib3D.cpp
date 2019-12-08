@@ -66,6 +66,9 @@ void Vec3D::plus(Vec3D vec){
 void Vec3D::minus(Vec3D vec){
     mX-=vec.mX;mY-=vec.mY;mZ-=vec.mZ;
 }
+Vec3D Vec3D::neg(){
+    return Vec3D(-mX,-mY,-mZ);
+}
 void Vec3D::multiply(float x, float y, float z){
     mX*=x;mY*=y;mZ*=z;
 }

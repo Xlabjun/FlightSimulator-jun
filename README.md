@@ -45,7 +45,7 @@ Examples:
 1. Implement shading (Final)
 
 * Textures:
-1. Implement a variety of textures for the airplane, terrian, etc. (Final)
+1. Implement a variety of textures for the airplane, terrain, etc. (Final)
 
 * Terrain:
 1. Terrain generation (Final)

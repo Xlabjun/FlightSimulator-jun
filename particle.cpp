@@ -14,7 +14,7 @@ Particle::Particle(State state,bool setAntiGrav,bool setRubber){
     antiGrav=false;rubber=false;
 
     initState=state;
-    mPos=Point3D(0,0,0); 
+    mPos=Point3D(0,0,250); 
     mOrig=Point3D(mPos.mX,mPos.mY,mPos.mZ);
     mVel=Vec3D((rand()/float(RAND_MAX))*1 -.5,(rand()/float(RAND_MAX))*3 +2,(rand()/float(RAND_MAX))*1 -.5); 
     mRot=Point3D(float(RAND_MAX)*360,float(RAND_MAX)*360,float(RAND_MAX)*360);

@@ -134,10 +134,7 @@ std::vector< Vertex > LoadOBJ( std::istream& in )
 //*******************************************************************************wavefront .obj loader code ends here
 
 float xAxisRotation, yAxisRotation;
-bool lightingEnabled=false, fixedCamera=false;
-
-GLdouble camOffset[] = { 0, 1, 2 }; 
-GLdouble centerOffset[] = { 0, 0, 0 };
+bool lightingEnabled=true, fixedCamera=false;
 
 int gWidth=1000, gHeight=1000;
 vector<Particle> particleArr(1000);//2000-3000 particle capacity  rand()%1000+3000
@@ -148,7 +145,7 @@ Airplane airplane=Airplane(state);
 void drawParticle(Particle p) {
 	glPushMatrix();
 		glTranslatef(p.mPos.mX,p.mPos.mY,p.mPos.mZ);
-		if (!lightingEnabled) glColor3f(p.mColor[0],p.mColor[1],p.mColor[2]);//change glColor to each particle before we draw
+		glColor3f(p.mColor[0],p.mColor[1],p.mColor[2]);//change glColor to each particle before we draw
 
 		glutSolidSphere(p.mSize*1,10,10);
 		glRotatef(p.mRot.mX,1,0,0);
@@ -164,12 +161,15 @@ void drawPlane(){
                 glColor3f((float)heightmap.hgt[z][x]/30,heightmap.hgt[z][x]/30,(float)heightmap.hgt[z][x]/30);
                 glNormal3f(heightmap.normals[z][x].x,heightmap.normals[z][x].y,heightmap.normals[z][x].z);
                 glVertex3f(z, heightmap.hgt[z][x], x);
+
                 glColor3f((float)heightmap.hgt[z][x+1]/30,heightmap.hgt[z][x+1]/30,(float)heightmap.hgt[z][x+1]/30);
                 glNormal3f(heightmap.normals[z][x+1].x,heightmap.normals[z][x+1].y,heightmap.normals[z][x+1].z);
                 glVertex3f(z, heightmap.hgt[z][x+1], x+1);
+                
                 glColor3f((float)heightmap.hgt[z+1][x+1]/30,heightmap.hgt[z+1][x+1]/30,(float)heightmap.hgt[z+1][x+1]/30);
                 glNormal3f(heightmap.normals[z+1][x+1].x,heightmap.normals[z+1][x+1].y,heightmap.normals[z+1][x+1].z);
                 glVertex3f(z+1, heightmap.hgt[z+1][x+1], x+1);
+                
                 glColor3f((float)heightmap.hgt[z+1][x]/30,heightmap.hgt[z+1][x]/30,(float)heightmap.hgt[z+1][x]/30);
                 glNormal3f(heightmap.normals[z+1][x].x,heightmap.normals[z+1][x].y,heightmap.normals[z+1][x].z);
                 glVertex3f(z+1, heightmap.hgt[z+1][x], x);
@@ -179,9 +179,9 @@ void drawPlane(){
 }
 void drawAirplane(){
    
-        glTranslatef(airplane.mPos.mX,airplane.mPos.mY,airplane.mPos.mZ);
+    glTranslatef(airplane.mPos.mX,airplane.mPos.mY,airplane.mPos.mZ);
             
-    glScalef(0.1,0.1,0.1);
+    glScalef(0.01,0.01,0.01);
     //glRotatef(airplane.mRot.mX, 1,0,0);
     
     //glPointSize(3.0);
@@ -212,18 +212,24 @@ void drawAirplane(){
         // bounding cube
     }
 }
+
+
+GLdouble camOffset[] = { 0, 0.1, 0.3 }; 
+GLdouble centerOffset[] = { 0, 0, 0 };
+
 void display(void) {
+    airplane.update();
 
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 	
 	glLoadIdentity();
 
 	//glMatrixMode( GL_MODELVIEW );
-	if (!fixedCamera)gluLookAt(airplane.mPos.mX+camOffset[0],airplane.mPos.mY+camOffset[1],airplane.mPos.mZ+camOffset[2], airplane.mPos.mX,airplane.mPos.mY+centerOffset[1],airplane.mPos.mZ, 0,1,0);
+	if (!fixedCamera)
+        gluLookAt(airplane.mPos.mX-airplane.mVel.mX,airplane.mPos.mY-airplane.mVel.mY,airplane.mPos.mZ-airplane.mVel.mZ, airplane.mPos.mX,airplane.mPos.mY+centerOffset[1],airplane.mPos.mZ, 0,1,0);
 	else {
-        gluLookAt(airplane.mOrig.mX+camOffset[0],airplane.mOrig.mY+camOffset[1]+50,airplane.mOrig.mZ+camOffset[2]+100,
-            0,0,0, 0,1,0);
-                }
+        gluLookAt(airplane.mOrig.mX+camOffset[0],airplane.mOrig.mY+camOffset[1]+50,airplane.mOrig.mZ+camOffset[2]+100, 0,0,0, 0,1,0);
+    }
 	/*glTranslatef(-camOffset[0],-camOffset[1],-camOffset[2]);//ensure rotation at 0,0,0
 	glRotatef(xAxisRotation,1,0,0);	//about x axis
 	glRotatef(yAxisRotation,0,1,0); //about y axis
@@ -243,12 +249,11 @@ void display(void) {
 	glPushMatrix();
         glTranslatef(-heightmap.gridWid/2,0,0);
 		drawPlane();
-		
 	//pop the matrix back to what it was prior to the rotation
 	glPopMatrix();
 
-	airplane.update();
 
+	
 	glPushMatrix();
 		drawAirplane();
 	glPopMatrix();
@@ -436,8 +441,32 @@ void reshape(int w, int h){
 	for (int i=0; i<(int)(particleArr.capacity()/1.1); i++){ particleArr[i].gWidth=gWidth; particleArr[i].gHeight=gHeight;}
 }
 
-int main(int argc, char** argv){
+GLfloat lightPos[4] = {
+     2, 300, 5, 1 
+};
+GLfloat lightDiffuses[4] = {
+     1, 1, 1, 1 
+};
+GLfloat lightSpeculars[4] = {
+    1, 1, 1, 1 
+};
+GLfloat lightAmbients[4] = {
+     1, 1, 1, 1 
+};
+void configureLighting(){
+    //glEnable(GL_LIGHTING);
+    //glEnable(GL_LIGHT0);
+    glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE,   lightDiffuses);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, lightSpeculars);
+    glLightfv(GL_LIGHT0, GL_AMBIENT,   lightAmbients);
+}
 
+int main(int argc, char** argv){
+    configureLighting();
+
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
     heightmap.circleAlgo(100);
     //heightmap.faultAlgo(100);
 
@@ -471,12 +500,10 @@ int main(int argc, char** argv){
 
     // Enable lighting here
 	//glEnable(GL_DEPTH_TEST);
-    if (lightingEnabled) glEnable(GL_LIGHTING);
+
+    //glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
-    glEnable(GL_LIGHT1);
-
 	glEnable(GL_DEPTH_TEST);
-
     glCullFace(GL_BACK);
     glShadeModel(GL_SMOOTH);
 
