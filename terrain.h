@@ -12,8 +12,8 @@ class terrain
 public:
     terrain();
     terrain(int wid, int len);
-    vector<vector<float>> hgt; // initialization of grid
-    vector<vector<norm>> normals; // initialization of normals of grid
+    float **hgt; // initialization of grid
+    norm **normals; // initialization of normals of grid
     int gridWid;
     int gridLen;
 

@@ -1,6 +1,8 @@
 #include <time.h>
 #include <math.h>
 #include "terrain.h"
+#include <stdlib.h>
+#include <cstring>
 
 using namespace std;
 
@@ -9,16 +11,20 @@ terrain::terrain() {
     gridLen = 50;
     gridWid = 50;
 
+    hgt = new float* [gridWid];
+
     // set default height map for flat terrain
     for (int x = 0; x < gridWid; x++) {
-        hgt.push_back(vector<float>(gridLen, 0));
+        hgt[x] = new float[gridLen];
+        memset(hgt[x], 0, gridLen*sizeof(float));
     }
+
+    normals = new norm* [gridWid];
 
     // set default face normals for all vertices of terrain
     for (int x = 0; x < gridWid; x++) {
-        for (int z = 0; z < gridLen; z++) {
-            normals[x].push_back({0,0,1});
-        }
+        normals[x] = new norm[gridLen];
+        memset(normals[x], {0,0,1}, gridLen*sizeof(norm));
     }
 }
 
@@ -27,16 +33,20 @@ terrain::terrain(int wid, int len) {
     gridLen = len;
     gridWid = wid;
 
-    // set height map for flat terrain
+    hgt = new float* [gridWid];
+
+    // set default height map for flat terrain
     for (int x = 0; x < gridWid; x++) {
-        hgt.push_back(vector<float>(gridLen, 0));
+        hgt[x] = new float[gridLen];
+        memset(hgt[x], 0, gridLen*sizeof(float));
     }
 
-    // set face normals for all vertices of terrain
+    normals = new norm* [gridWid];
+
+    // set default face normals for all vertices of terrain
     for (int x = 0; x < gridWid; x++) {
-        for (int z = 0; z < gridLen; z++) {
-            normals[x].push_back({0,0,1});
-        }
+        normals[x] = new norm[gridLen];
+        memset(normals[x], {0,0,1}, gridLen*sizeof(norm));
     }
 }
 
