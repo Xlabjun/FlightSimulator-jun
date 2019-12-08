@@ -24,7 +24,6 @@ terrain::terrain() {
     // set default face normals for all vertices of terrain
     for (int x = 0; x < gridWid; x++) {
         normals[x] = new norm[gridLen];
-        memset(normals[x], {0,0,1}, gridLen*sizeof(norm));
     }
 }
 
@@ -46,7 +45,6 @@ terrain::terrain(int wid, int len) {
     // set default face normals for all vertices of terrain
     for (int x = 0; x < gridWid; x++) {
         normals[x] = new norm[gridLen];
-        memset(normals[x], {0,0,1}, gridLen*sizeof(norm));
     }
 }
 
@@ -57,8 +55,8 @@ void terrain::circleAlgo(int iteration) {
 	for (int k = 0; k < iteration;k++) {
 		float z = (rand() % gridLen);
 		float x = (rand() % gridWid);
-		float r = (rand() % (gridWid/2)) + 3;
-		float disp = (rand() % 10);
+		float r = (rand() % (gridWid/2)) + 3; // higher "... + num", flatter
+		float disp = (rand() % 30);           // higher "... % num", steeper peaks
 		for (int i = 0;i < gridWid; i++)
 			for(int j = 0; j < gridLen; j++) {
 					pd = (sqrt(((i-x)*(i-x) + (j-z)*(j-z)))*2)/r;

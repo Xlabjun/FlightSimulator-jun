@@ -20,7 +20,7 @@ PROGRAM_NAME=flightSim
 run: $(PROGRAM_NAME)
 	./$(PROGRAM_NAME)$(EXEEXT)
 
-$(PROGRAM_NAME): main.o particle.o airplane.o mathLib3D.o
+$(PROGRAM_NAME): main.o particle.o airplane.o mathLib3D.o terrain.o
 	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS) -I./glm/glm.hpp
 
 FORCE: ;

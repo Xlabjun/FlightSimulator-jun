@@ -25,8 +25,8 @@
 #include <string.h>
 #include <time.h>       /* time */
 #include <algorithm>
+#include "terrain.h"
 #include <vector>
-
 
 using namespace std;
 
@@ -44,6 +44,9 @@ struct VertRef
 };
 
 std::vector< Vertex > model;
+
+terrain heightmap = terrain(500,500);
+
 //*******************************************************************************wavefront .obj loader code begins
 std::vector< Vertex > LoadOBJ( std::istream& in )
 {
@@ -131,7 +134,7 @@ std::vector< Vertex > LoadOBJ( std::istream& in )
 //*******************************************************************************wavefront .obj loader code ends here
 
 float xAxisRotation, yAxisRotation;
-bool frictionEnabled = false, lightingEnabled=true, cameraInNextParticle=false, cameraCurrentlyInParticle=false;
+bool frictionEnabled = false, lightingEnabled=false, cameraInNextParticle=false, cameraCurrentlyInParticle=false;
 
 GLdouble camOffset[] = { 0, 7, 250 }; 
 GLdouble centerOffset[] = { 0, 3, 0 };
@@ -155,14 +158,24 @@ void drawParticle(Particle p) {
 	glPopMatrix();
 }
 void drawPlane(){
-	glBegin(GL_QUADS);
-		glColor3f (1,    1,  1);
-        glNormal3f(0,1,0);
-		glVertex3f(-500, 0, -500);
-		glVertex3f(-500, 0,  500);
-		glVertex3f( 500, 0,  500);
-		glVertex3f( 500, 0,  -500);
-	glEnd();
+    for (int x = 0; x < heightmap.gridWid-1; x++) {
+        glBegin(GL_QUADS);
+            for (int z = 0; z < heightmap.gridLen-1; z++) {
+                glColor3f((float)heightmap.hgt[z][x]/30,heightmap.hgt[z][x]/30,(float)heightmap.hgt[z][x]/30);
+                glNormal3f(heightmap.normals[z][x].x,heightmap.normals[z][x].y,heightmap.normals[z][x].z);
+                glVertex3f(z, heightmap.hgt[z][x], x);
+                glColor3f((float)heightmap.hgt[z][x+1]/30,heightmap.hgt[z][x+1]/30,(float)heightmap.hgt[z][x+1]/30);
+                glNormal3f(heightmap.normals[z][x+1].x,heightmap.normals[z][x+1].y,heightmap.normals[z][x+1].z);
+                glVertex3f(z, heightmap.hgt[z][x+1], x+1);
+                glColor3f((float)heightmap.hgt[z+1][x+1]/30,heightmap.hgt[z+1][x+1]/30,(float)heightmap.hgt[z+1][x+1]/30);
+                glNormal3f(heightmap.normals[z+1][x+1].x,heightmap.normals[z+1][x+1].y,heightmap.normals[z+1][x+1].z);
+                glVertex3f(z+1, heightmap.hgt[z+1][x+1], x+1);
+                glColor3f((float)heightmap.hgt[z+1][x]/30,heightmap.hgt[z+1][x]/30,(float)heightmap.hgt[z+1][x]/30);
+                glNormal3f(heightmap.normals[z+1][x].x,heightmap.normals[z+1][x].y,heightmap.normals[z+1][x].z);
+                glVertex3f(z+1, heightmap.hgt[z+1][x], x);
+            }
+        glEnd();
+    }
 }
 void drawAirplane(){
    
@@ -228,6 +241,7 @@ void display(void) {
 	
 	//push the current modelview matrix onto the matrix stack
 	glPushMatrix();
+        glTranslatef(-heightmap.gridWid/2,0,0);
 		drawPlane();
 		
 	//pop the matrix back to what it was prior to the rotation
@@ -432,6 +446,12 @@ void reshape(int w, int h){
 }
 
 int main(int argc, char** argv){
+
+    heightmap.circleAlgo(100);
+    //heightmap.faultAlgo(100);
+
+    heightmap.compNorms();
+
     std::ifstream ifile( "data/F16C_US_LOD1_v25.obj" );
     model = LoadOBJ( ifile );
 
