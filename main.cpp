@@ -163,22 +163,22 @@ void drawPlane(){
     for (int x = 0; x < heightmap.gridWid-1; x++) {
         glBegin(GL_QUADS);
             for (int z = 0; z < heightmap.gridLen-1; z++) {
-                glColor3f((float)heightmap.hgt[x][z]/30,heightmap.hgt[x][z]/30,(float)heightmap.hgt[x][z]/30);
+                glColor3f((float)heightmap.hgt[x][z]/30,heightmap.hgt[x][z]/3,(float)heightmap.hgt[x][z]/30);
                 glTexCoord3f(x, heightmap.hgt[x][z], z);
                 glNormal3f(heightmap.normals[x][z].x,heightmap.normals[x][z].y,heightmap.normals[x][z].z);
                 glVertex3f(x, heightmap.hgt[x][z], z);
 
-                glColor3f((float)heightmap.hgt[x][z+1]/30,heightmap.hgt[x][z+1]/30,(float)heightmap.hgt[x][z+1]/30);
+                glColor3f((float)heightmap.hgt[x][z+1]/30,heightmap.hgt[x][z+1]/3,(float)heightmap.hgt[x][z+1]/30);
                 glTexCoord3f(x, heightmap.hgt[x][z+1], z+1);
                 glNormal3f(heightmap.normals[x][z+1].x,heightmap.normals[x][z+1].y,heightmap.normals[x][z+1].z);
                 glVertex3f(x, heightmap.hgt[x][z+1], z+1);
                 
-                glColor3f((float)heightmap.hgt[x+1][z+1]/30,heightmap.hgt[x+1][z+1]/30,(float)heightmap.hgt[x+1][z+1]/30);
+                glColor3f((float)heightmap.hgt[x+1][z+1]/30,heightmap.hgt[x+1][z+1]/3,(float)heightmap.hgt[x+1][z+1]/30);
                 glTexCoord3f(x+1, heightmap.hgt[x+1][z+1], z+1);
                 glNormal3f(heightmap.normals[x+1][z+1].x,heightmap.normals[x+1][z+1].y,heightmap.normals[x+1][z+1].z);
                 glVertex3f(x+1, heightmap.hgt[x+1][z+1], z+1);
                 
-                glColor3f((float)heightmap.hgt[x+1][z]/30,heightmap.hgt[x+1][z]/30,(float)heightmap.hgt[x+1][z]/30);
+                glColor3f((float)heightmap.hgt[x+1][z]/30,heightmap.hgt[x+1][z]/3,(float)heightmap.hgt[x+1][z]/30);
                 glTexCoord3f(x+1, heightmap.hgt[x+1][z], z);
                 glNormal3f(heightmap.normals[x+1][z].x,heightmap.normals[x+1][z].y,heightmap.normals[x+1][z].z);
                 glVertex3f(x+1, heightmap.hgt[x+1][z], z);
@@ -226,13 +226,10 @@ void collision(){
     if(airplane.initState!=PAUSED) {
         for (int x = 0; x < heightmap.gridWid; x++) {
             for (int z = 0; z < heightmap.gridLen; z++) {
-            if (airplane.mPos.mY < heightmap.hgt[x][z] + 0.5)       {//bounce off ground
-                airplane.mVel.mY=-airplane.mVel.mY/2;airplane.mAcc.mY=airplane.mAcc.mY/8;
-                if (airplane.mPos.mY < heightmap.hgt[x][z] + 0.5){
-                    if (airplane.frictionEnabled)airplane.mVel.multiply(airplane.friction);
-                    airplane.mPos.mY=heightmap.hgt[x][z]*1.1;
-            } 
-        }
+            if ( abs(airplane.mPos.mX-x)<10 && abs(airplane.mPos.mZ-z)<10 && airplane.mPos.mY<heightmap.hgt[x][z]) {//bounce off ground
+                    airplane.mPos.mY=heightmap.hgt[x][z];
+                    break;
+                }
             }
         }
     }
@@ -243,7 +240,7 @@ GLdouble centerOffset[] = { 0, 0, 0 };
 
 
 GLfloat lightPos[4] = {
-     2, 300, 5, 0 
+     250, 300, -500, 1 
 };
 GLfloat lightDiffuses[4] = {
      1, 1, 1, 1
@@ -258,10 +255,10 @@ GLfloat lightAmbients[4] = {
 
 void configureLighting(){
 
-    glLightfv(GL_LIGHT1, GL_POSITION, lightPos);
-    glLightfv(GL_LIGHT1, GL_DIFFUSE,   lightDiffuses);
-    glLightfv(GL_LIGHT1, GL_SPECULAR, lightSpeculars);
-    glLightfv(GL_LIGHT1, GL_AMBIENT,   lightAmbients);
+    glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE,   lightDiffuses);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, lightSpeculars);
+    glLightfv(GL_LIGHT0, GL_AMBIENT,   lightAmbients);
 }
 
 void display(void) {
@@ -276,7 +273,7 @@ void display(void) {
 	//glMatrixMode( GL_MODELVIEW );
 	if (!fixedCamera){
     Vec3D offsetVec=airplane.mVel.normalize();
-        gluLookAt(airplane.mPos.mX-offsetVec.mX,airplane.mPos.mY-offsetVec.mY,airplane.mPos.mZ-offsetVec.mZ, airplane.mPos.mX,airplane.mPos.mY+centerOffset[1],airplane.mPos.mZ, 0,1,0);
+        gluLookAt(airplane.mPos.mX-offsetVec.mX+camOffset[0],airplane.mPos.mY-offsetVec.mY+camOffset[1],airplane.mPos.mZ-offsetVec.mZ+camOffset[2], airplane.mPos.mX,airplane.mPos.mY+centerOffset[1],airplane.mPos.mZ, 0,1,0);
 	}else {
         gluLookAt(airplane.mOrig.mX+camOffset[0],airplane.mOrig.mY+camOffset[1]+50,airplane.mOrig.mZ+camOffset[2]+100, 0,0,0, 0,1,0);
     }
@@ -322,21 +319,23 @@ void display(void) {
 }
 
 void handleKeyboard(unsigned char key, int _x, int _y) {
+        cout <<"\nlightPos: "<<lightPos[0]<<", "<<lightPos[1]<<", "<<lightPos[2];
     if (key == 27) {//escape key
         exit(0);
     
+
 	} else if (key == '.') {
-        camOffset[0] +=15;
+        camOffset[0] +=.5;
     } else if (key == 'm') {
-        camOffset[0] -=15;
+        camOffset[0] -=.5;
     } else if (key == 'k') {
-        camOffset[1] +=10;
+        camOffset[1] +=.5;
     } else if (key == ',') {
-        camOffset[1] -=10;
+        camOffset[1] -=.5;
     } else if (key == 'i') {
-        camOffset[2] -=10;
+        camOffset[2] -=.5;
     } else if (key == 'o') {
-        camOffset[2] +=10;
+        camOffset[2] +=.5;
 
 	} else if (key == 'd') {
         airplane.mAcc.mX+=0.0001;
@@ -352,18 +351,22 @@ void handleKeyboard(unsigned char key, int _x, int _y) {
     } else if (key == 'z') {
         airplane.mAcc.mZ+=.00005;
 
-	} else if (key == 'j') {
-        //lightPos[1][0] +=15;
-    } else if (key == 'g') {
-        //lightPos[1][0] -=15;
-    } else if (key == 'y') {
-        //lightPos[1][1] +=10;
-    } else if (key == 'h') {
-        //lightPos[1][1] -=10;
+	} else if (key == 'h') {
+        lightPos[0] +=150;
+    } else if (key == 'f') {
+        lightPos[0] -=150;
     } else if (key == 't') {
+        lightPos[1] +=150;
+    } else if (key == 'g') {
+        lightPos[1] -=150;
+    } else if (key == 'y') {
+        lightPos[2] +=150;
+    } else if (key == 'r') {
+        lightPos[2] -=150;
+
+    } else if (key == 'v') {
         texMode = !texMode;
-    } else if (key == 'u') {
-        //lightPos[1][2] +=10;
+
 
     } else if (key == ' ') {
         if (state!=PAUSED) state=PAUSED;//if not pause and spacebar pressed, pause
@@ -430,7 +433,7 @@ void FPS(int val){
 
 void callBackInit(){
     glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT1);
+    glEnable(GL_LIGHT0);
 	glutKeyboardFunc(handleKeyboard);
 	glutSpecialFunc(SpecialKeys);
     glutDisplayFunc(display);	//registers "display" as the display callback function

@@ -12,7 +12,7 @@ Airplane::Airplane(){};//default constructor, not used
 
 Airplane::Airplane(State state){
     initState=state;
-    mPos=Vec3D(0,100,500);mVel=Vec3D(0,0,-1); 
+    mPos=Vec3D(0,50,500);mVel=Vec3D(0,0,-1); 
     mAcc=Vec3D(0,0,0); 
     mOrig=Vec3D(mPos.mX,mPos.mY,mPos.mZ);
 
@@ -36,7 +36,7 @@ void Airplane::update(){
 		mRot.mY+=mAcc.mX*350;   //roll
 		mRot.mZ-=mAcc.mX*650;  //yaw
         
-        cout<<mAcc.mY*mSpeed<<" before updated \n";
+        //cout<<mAcc.mY*mSpeed<<" before updated \n";
         age++;
 
         mVel.plus(mAcc.mX*mSpeed,mAcc.mY*mSpeed,mAcc.mZ*mSpeed);
