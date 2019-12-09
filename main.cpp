@@ -137,7 +137,7 @@ float xAxisRotation, yAxisRotation;
 bool lightingEnabled=true, fixedCamera=false;
 
 int gWidth=1000, gHeight=1000;
-vector<Particle> particleArr(1000);//2000-3000 particle capacity  rand()%1000+3000
+vector<Particle> particleArr(100);//2000-3000 particle capacity  rand()%1000+3000
 Point3D mousePos;
 State state = NEUTRAL;
 Airplane airplane=Airplane(state);
@@ -220,7 +220,7 @@ void collision(){
                 airplane.mVel.mY=-airplane.mVel.mY/2;airplane.mAcc.mY=airplane.mAcc.mY/8;
                 if (airplane.mPos.mY < heightmap.hgt[x][z] + 0.5){
                     if (airplane.frictionEnabled)airplane.mVel.multiply(airplane.friction);
-                    airplane.mPos.mY=1;
+                    airplane.mPos.mY=heightmap.hgt[x][z]*1.1;
             } 
         }
             }

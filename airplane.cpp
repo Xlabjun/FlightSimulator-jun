@@ -35,7 +35,7 @@ void Airplane::update(){
         mRot.mX+=(mAcc.mY+gravity*100)*700;   //pitch
 		mRot.mY+=mAcc.mX*350;   //roll
 		mRot.mZ-=mAcc.mX*650;  //yaw
-
+        
         //cout<<mPos.mY<<" before updated \n";
         age++;
 
