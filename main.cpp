@@ -246,10 +246,10 @@ GLfloat lightPos[4] = {
      2, 300, 5, 0 
 };
 GLfloat lightDiffuses[4] = {
-     1, 1, 1, 0.5 
+     1, 1, 1, 1
 };
 GLfloat lightSpeculars[4] = {
-    1, 1, 1, 0.5 
+    1, 1, 1, 1
 };
 GLfloat lightAmbients[4] = {
      1, 1, 1, 0.1 
@@ -257,12 +257,11 @@ GLfloat lightAmbients[4] = {
 
 
 void configureLighting(){
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
-    glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE,   lightDiffuses);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, lightSpeculars);
-    glLightfv(GL_LIGHT0, GL_AMBIENT,   lightAmbients);
+
+    glLightfv(GL_LIGHT1, GL_POSITION, lightPos);
+    glLightfv(GL_LIGHT1, GL_DIFFUSE,   lightDiffuses);
+    glLightfv(GL_LIGHT1, GL_SPECULAR, lightSpeculars);
+    glLightfv(GL_LIGHT1, GL_AMBIENT,   lightAmbients);
 }
 
 void display(void) {
@@ -430,6 +429,8 @@ void FPS(int val){
 }
 
 void callBackInit(){
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT1);
 	glutKeyboardFunc(handleKeyboard);
 	glutSpecialFunc(SpecialKeys);
     glutDisplayFunc(display);	//registers "display" as the display callback function
