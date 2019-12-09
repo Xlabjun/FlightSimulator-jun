@@ -226,8 +226,8 @@ void collision(){
     if(airplane.initState!=PAUSED) {
         for (int x = 0; x < heightmap.gridWid; x++) {
             for (int z = 0; z < heightmap.gridLen; z++) {
-            if ( abs(airplane.mPos.mX-x)<10 && abs(airplane.mPos.mZ-z)<10 && airplane.mPos.mY<heightmap.hgt[x][z]) {//bounce off ground
-                    airplane.mPos.mY=heightmap.hgt[x][z];
+                if ( (abs(airplane.mPos.mX-x)<50) && (abs(airplane.mPos.mZ-z)<50) && (airplane.mPos.mY<heightmap.hgt[x][z])*1.1) {//bounce off ground
+                    airplane.mPos.mY=heightmap.hgt[x][z]+1;
                     break;
                 }
             }
