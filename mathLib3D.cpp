@@ -46,7 +46,8 @@ float Vec3D::length(){
     return sqrt(pow(mX, 2) + pow(mY, 2) + pow(mZ, 2));
 }
 Vec3D Vec3D::normalize(){
-    return Vec3D(mX/length(), mY/length(), mZ/length());
+    float length=Vec3D::length();
+    return Vec3D(mX/length, mY/length, mZ/length);
 }
 void Vec3D::multiply(float scalar){
     mX*=scalar;mY*=scalar;mZ*=scalar;

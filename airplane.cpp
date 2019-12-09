@@ -31,19 +31,19 @@ Airplane::Airplane(State state){
 void Airplane::update(){
     //cout<<initState;
     if (initState!=PAUSED){
-        cout<<mAcc.mY*500<<"\n";
+        //cout<<mAcc.mY*500<<"\n";
         mRot.mX+=(mAcc.mY+gravity*100)*700;   //pitch
 		mRot.mY+=mAcc.mX*350;   //roll
 		mRot.mZ-=mAcc.mX*650;  //yaw
         
-        //cout<<mPos.mY<<" before updated \n";
+        cout<<mAcc.mY*mSpeed<<" before updated \n";
         age++;
 
         mVel.plus(mAcc.mX*mSpeed,mAcc.mY*mSpeed,mAcc.mZ*mSpeed);
         mPos.plus(mVel.mX,mVel.mY,mVel.mZ);
 
-        if (mVel.mY>gHeight/4)mVel.mY=gHeight/4;
-        else if (mVel.mY<-gHeight/4)mVel.mY=-gHeight/4;
+        //if (mVel.mY>gHeight/4)mVel.mY=gHeight/4;
+        //else if (mVel.mY<-gHeight/4)mVel.mY=-gHeight/4;
         
         //if moving so fast that jumping outside of screen borders, remake in middle of platform
 
@@ -59,7 +59,7 @@ void Airplane::update(){
 
 void Airplane::slowDown(){
     mAcc.mY-=gravity;
-    mAcc.multiply(0.98);
-    mVel.multiply(0.995);
+    mAcc.multiply(0.998f);
+    mVel.multiply(0.995f);
     mRot.mY*=0.90;
 }

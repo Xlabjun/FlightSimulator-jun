@@ -193,10 +193,11 @@ void drawAirplane(){
 
         
         // object
-        //glColor3ub( 255, 50, 50 );
+        glColor3ub( 150, 150, 150 );
         glRotatef(airplane.mRot.mX,1,0,0);
 		glRotatef(airplane.mRot.mY,0,1,0);
 		glRotatef(airplane.mRot.mZ,0,0,1);
+
 
         glEnableClientState( GL_VERTEX_ARRAY );
         glEnableClientState( GL_TEXTURE_COORD_ARRAY );
@@ -231,7 +232,32 @@ void collision(){
 GLdouble camOffset[] = { 0, 0.1, 0.3 }; 
 GLdouble centerOffset[] = { 0, 0, 0 };
 
+
+GLfloat lightPos[4] = {
+     2, 300, 5, 0 
+};
+GLfloat lightDiffuses[4] = {
+     1, 1, 1, 0.5 
+};
+GLfloat lightSpeculars[4] = {
+    1, 1, 1, 0.5 
+};
+GLfloat lightAmbients[4] = {
+     1, 1, 1, 0.1 
+};
+
+
+void configureLighting(){
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE,   lightDiffuses);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, lightSpeculars);
+    glLightfv(GL_LIGHT0, GL_AMBIENT,   lightAmbients);
+}
+
 void display(void) {
+    configureLighting();
     airplane.update();
     collision();
 
@@ -261,7 +287,14 @@ void display(void) {
 		if (particleArr[i].initState!=PAUSED) drawParticle(particleArr[i]);//render
 	}
 	
-	//push the current modelview matrix onto the matrix stack
+
+
+	
+	glPushMatrix();
+		drawAirplane();
+	glPopMatrix();
+
+		//push the current modelview matrix onto the matrix stack
 	glPushMatrix();
         glTranslatef(-heightmap.gridWid/2,0,0);
 		drawPlane();
@@ -269,11 +302,6 @@ void display(void) {
 	glPopMatrix();
 
 
-	
-	glPushMatrix();
-		drawAirplane();
-	glPopMatrix();
-	
 	glutSwapBuffers();//swap buffers for smooth animation
 	glutPostRedisplay();
 }
@@ -300,6 +328,7 @@ void handleKeyboard(unsigned char key, int _x, int _y) {
     } else if (key == 'a') {
         airplane.mAcc.mX-=0.0001;
     } else if (key == 'w') {
+        cout<<airplane.mVel.mY<<"\n";
 		airplane.mAcc.mY-=0.00005;
     } else if (key == 's') {
         airplane.mAcc.mY+=0.00005;
@@ -381,7 +410,7 @@ void SpecialKeys(int key, int x, int y) {
 
 void FPS(int val){
     glutPostRedisplay();
-    glutTimerFunc(17, FPS, 0); // 1sec = 1000, 60fps = 1000/60 = ~17ms per frame
+    glutTimerFunc(30, FPS, 0); // 1sec = 1000, 60fps = 1000/60 = ~17ms per frame
 }
 
 void callBackInit(){
@@ -450,32 +479,12 @@ void reshape(int w, int h){
 	for (int i=0; i<(int)(particleArr.capacity()/1.1); i++){ particleArr[i].gWidth=gWidth; particleArr[i].gHeight=gHeight;}
 }
 
-GLfloat lightPos[4] = {
-     2, 300, 5, 1 
-};
-GLfloat lightDiffuses[4] = {
-     1, 1, 1, 0.5 
-};
-GLfloat lightSpeculars[4] = {
-    1, 1, 1, 0.5 
-};
-GLfloat lightAmbients[4] = {
-     1, 1, 1, 0.5 
-};
-void configureLighting(){
-    //glEnable(GL_LIGHTING);
-    //glEnable(GL_LIGHT0);
-    glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE,   lightDiffuses);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, lightSpeculars);
-    glLightfv(GL_LIGHT0, GL_AMBIENT,   lightAmbients);
-}
+
 
 int main(int argc, char** argv){
-    configureLighting();
+    //configureLighting();
 
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
+
     heightmap.circleAlgo(100);
     //heightmap.faultAlgo(100);
 
@@ -511,9 +520,10 @@ int main(int argc, char** argv){
 	//glEnable(GL_DEPTH_TEST);
 
     //glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
+
 	glEnable(GL_DEPTH_TEST);
     glCullFace(GL_BACK);
+    
     glShadeModel(GL_SMOOTH);
 
 
