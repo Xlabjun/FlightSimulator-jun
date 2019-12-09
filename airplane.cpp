@@ -41,15 +41,6 @@ void Airplane::update(){
 
         mVel.plus(mAcc.mX*mSpeed,mAcc.mY*mSpeed,mAcc.mZ*mSpeed);
         mPos.plus(mVel.mX,mVel.mY,mVel.mZ);
-        
-
-        if (mPos.mY<0     )       {//bounce off ground
-            mVel.mY=-mVel.mY/2;mAcc.mY=mAcc.mY/8;
-            if (mPos.mY<0){
-                if (frictionEnabled)mVel.multiply(friction);
-                mPos.mY=1;
-            } 
-        }
 
         if (mVel.mY>gHeight/4)mVel.mY=gHeight/4;
         else if (mVel.mY<-gHeight/4)mVel.mY=-gHeight/4;

@@ -158,21 +158,21 @@ void drawPlane(){
     for (int x = 0; x < heightmap.gridWid-1; x++) {
         glBegin(GL_QUADS);
             for (int z = 0; z < heightmap.gridLen-1; z++) {
-                glColor3f((float)heightmap.hgt[z][x]/30,heightmap.hgt[z][x]/30,(float)heightmap.hgt[z][x]/30);
-                glNormal3f(heightmap.normals[z][x].x,heightmap.normals[z][x].y,heightmap.normals[z][x].z);
-                glVertex3f(z, heightmap.hgt[z][x], x);
+                glColor3f((float)heightmap.hgt[x][z]/30,heightmap.hgt[x][z]/30,(float)heightmap.hgt[x][z]/30);
+                glNormal3f(heightmap.normals[x][z].x,heightmap.normals[x][z].y,heightmap.normals[x][z].z);
+                glVertex3f(x, heightmap.hgt[x][z], z);
 
-                glColor3f((float)heightmap.hgt[z][x+1]/30,heightmap.hgt[z][x+1]/30,(float)heightmap.hgt[z][x+1]/30);
-                glNormal3f(heightmap.normals[z][x+1].x,heightmap.normals[z][x+1].y,heightmap.normals[z][x+1].z);
-                glVertex3f(z, heightmap.hgt[z][x+1], x+1);
+                glColor3f((float)heightmap.hgt[x][z+1]/30,heightmap.hgt[x][z+1]/30,(float)heightmap.hgt[x][z+1]/30);
+                glNormal3f(heightmap.normals[x][z+1].x,heightmap.normals[x][z+1].y,heightmap.normals[x][z+1].z);
+                glVertex3f(x, heightmap.hgt[x][z+1], z+1);
                 
-                glColor3f((float)heightmap.hgt[z+1][x+1]/30,heightmap.hgt[z+1][x+1]/30,(float)heightmap.hgt[z+1][x+1]/30);
-                glNormal3f(heightmap.normals[z+1][x+1].x,heightmap.normals[z+1][x+1].y,heightmap.normals[z+1][x+1].z);
-                glVertex3f(z+1, heightmap.hgt[z+1][x+1], x+1);
+                glColor3f((float)heightmap.hgt[x+1][z+1]/30,heightmap.hgt[x+1][z+1]/30,(float)heightmap.hgt[x+1][z+1]/30);
+                glNormal3f(heightmap.normals[x+1][z+1].x,heightmap.normals[x+1][z+1].y,heightmap.normals[x+1][z+1].z);
+                glVertex3f(x+1, heightmap.hgt[x+1][z+1], z+1);
                 
-                glColor3f((float)heightmap.hgt[z+1][x]/30,heightmap.hgt[z+1][x]/30,(float)heightmap.hgt[z+1][x]/30);
-                glNormal3f(heightmap.normals[z+1][x].x,heightmap.normals[z+1][x].y,heightmap.normals[z+1][x].z);
-                glVertex3f(z+1, heightmap.hgt[z+1][x], x);
+                glColor3f((float)heightmap.hgt[x+1][z]/30,heightmap.hgt[x+1][z]/30,(float)heightmap.hgt[x+1][z]/30);
+                glNormal3f(heightmap.normals[x+1][z].x,heightmap.normals[x+1][z].y,heightmap.normals[x+1][z].z);
+                glVertex3f(x+1, heightmap.hgt[x+1][z], z);
             }
         glEnd();
     }
@@ -212,13 +212,28 @@ void drawAirplane(){
         // bounding cube
     }
 }
-
+void collision(){
+    if(airplane.initState!=PAUSED) {
+        for (int x = 0; x < heightmap.gridWid; x++) {
+            for (int z = 0; z < heightmap.gridLen; z++) {
+            if (airplane.mPos.mY < heightmap.hgt[x][z] + 0.5)       {//bounce off ground
+                airplane.mVel.mY=-airplane.mVel.mY/2;airplane.mAcc.mY=airplane.mAcc.mY/8;
+                if (airplane.mPos.mY < heightmap.hgt[x][z] + 0.5){
+                    if (airplane.frictionEnabled)airplane.mVel.multiply(airplane.friction);
+                    airplane.mPos.mY=1;
+            } 
+        }
+            }
+        }
+    }
+}
 
 GLdouble camOffset[] = { 0, 0.1, 0.3 }; 
 GLdouble centerOffset[] = { 0, 0, 0 };
 
 void display(void) {
     airplane.update();
+    collision();
 
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 	
