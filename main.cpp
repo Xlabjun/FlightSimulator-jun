@@ -134,13 +134,18 @@ std::vector< Vertex > LoadOBJ( std::istream& in )
 //*******************************************************************************wavefront .obj loader code ends here
 
 float xAxisRotation, yAxisRotation;
-bool lightingEnabled=true, fixedCamera=false;
+bool lightingEnabled=true, fixedCamera=false, texMode=false;
 
 int gWidth=1000, gHeight=1000;
 vector<Particle> particleArr(100);//2000-3000 particle capacity  rand()%1000+3000
 Point3D mousePos;
 State state = NEUTRAL;
 Airplane airplane=Airplane(state);
+
+//an array for image data
+GLubyte* img_data;
+GLuint textures;
+int width, height, max1;
 
 void drawParticle(Particle p) {
 	glPushMatrix();
@@ -159,18 +164,22 @@ void drawPlane(){
         glBegin(GL_QUADS);
             for (int z = 0; z < heightmap.gridLen-1; z++) {
                 glColor3f((float)heightmap.hgt[x][z]/30,heightmap.hgt[x][z]/30,(float)heightmap.hgt[x][z]/30);
+                glTexCoord3f(x, heightmap.hgt[x][z], z);
                 glNormal3f(heightmap.normals[x][z].x,heightmap.normals[x][z].y,heightmap.normals[x][z].z);
                 glVertex3f(x, heightmap.hgt[x][z], z);
 
                 glColor3f((float)heightmap.hgt[x][z+1]/30,heightmap.hgt[x][z+1]/30,(float)heightmap.hgt[x][z+1]/30);
+                glTexCoord3f(x, heightmap.hgt[x][z+1], z+1);
                 glNormal3f(heightmap.normals[x][z+1].x,heightmap.normals[x][z+1].y,heightmap.normals[x][z+1].z);
                 glVertex3f(x, heightmap.hgt[x][z+1], z+1);
                 
                 glColor3f((float)heightmap.hgt[x+1][z+1]/30,heightmap.hgt[x+1][z+1]/30,(float)heightmap.hgt[x+1][z+1]/30);
+                glTexCoord3f(x+1, heightmap.hgt[x+1][z+1], z+1);
                 glNormal3f(heightmap.normals[x+1][z+1].x,heightmap.normals[x+1][z+1].y,heightmap.normals[x+1][z+1].z);
                 glVertex3f(x+1, heightmap.hgt[x+1][z+1], z+1);
                 
                 glColor3f((float)heightmap.hgt[x+1][z]/30,heightmap.hgt[x+1][z]/30,(float)heightmap.hgt[x+1][z]/30);
+                glTexCoord3f(x+1, heightmap.hgt[x+1][z], z);
                 glNormal3f(heightmap.normals[x+1][z].x,heightmap.normals[x+1][z].y,heightmap.normals[x+1][z].z);
                 glVertex3f(x+1, heightmap.hgt[x+1][z], z);
             }
@@ -296,6 +305,13 @@ void display(void) {
 
 		//push the current modelview matrix onto the matrix stack
 	glPushMatrix();
+        if (!texMode) {
+            glDisable(GL_TEXTURE_2D);
+        }
+        if (texMode) {
+            glEnable(GL_TEXTURE_2D);
+            glBindTexture(GL_TEXTURE_2D, textures);
+        }
         glTranslatef(-heightmap.gridWid/2,0,0);
 		drawPlane();
 	//pop the matrix back to what it was prior to the rotation
@@ -346,7 +362,7 @@ void handleKeyboard(unsigned char key, int _x, int _y) {
     } else if (key == 'h') {
         //lightPos[1][1] -=10;
     } else if (key == 't') {
-        //lightPos[1][2] -=10;
+        texMode = !texMode;
     } else if (key == 'u') {
         //lightPos[1][2] +=10;
 
@@ -420,7 +436,7 @@ void callBackInit(){
 	glutTimerFunc(0, FPS, 0);
 	glEnable( GL_CULL_FACE );
 	glCullFace( GL_BACK );
-	    glPolygonMode( GL_FRONT, GL_FILL );
+	glPolygonMode( GL_FRONT, GL_FILL );
     glPolygonMode( GL_BACK, GL_LINE );
 }
 
@@ -481,6 +497,93 @@ void reshape(int w, int h){
 
 
 
+/* LoadPPM -- loads the specified ppm file, and returns the image data as a GLubyte
+ *  (unsigned byte) array. Also returns the width and height of the image, and the
+ *  maximum colour value by way of arguments
+ *  usage: GLubyte myImg = LoadPPM("myImg.ppm", &width, &height, &max);
+ */
+GLubyte* LoadPPM(char* file, int* wdth, int* hight, int* mx)
+{
+    GLubyte* img;
+    FILE *fd;
+    int n, m;
+    int  k, nm;
+    char c;
+    int i;
+    char b[100];
+    float s;
+    int red, green, blue;
+    
+    fd = fopen(file, "r");
+    fscanf(fd,"%[^\n] ",b);
+    if(b[0]!='P'|| b[1] != '3')
+    {
+        printf("%s is not a PPM file!\n",file);
+        exit(0);
+    }
+    printf("%s is a PPM file\n", file);
+    fscanf(fd, "%c",&c);
+    while(c == '#')
+    {
+        fscanf(fd, "%[^\n] ", b);
+        printf("%s\n",b);
+        fscanf(fd, "%c",&c);
+    }
+    ungetc(c,fd);
+    fscanf(fd, "%d %d %d", &n, &m, &k);
+    
+    printf("%d rows  %d columns  max value= %d\n",n,m,k);
+    
+    nm = n*m;
+    
+    img = (GLubyte*)malloc(3*sizeof(GLuint)*nm);
+    
+    s=255.0/k;
+    
+    
+    for(i=0;i<nm;i++)
+    {
+        fscanf(fd,"%d %d %d",&red, &green, &blue );
+        img[3*nm-3*i-3]=red*s;
+        img[3*nm-3*i-2]=green*s;
+        img[3*nm-3*i-1]=blue*s;
+    }
+    
+    *wdth = n;
+    *hight = m;
+    *mx = k;
+    
+    return img;
+}
+
+void projection(){
+    glMatrixMode(GL_TEXTURE);
+    glScalef(1,-1,-1);
+    
+    img_data = LoadPPM("terrain.ppm", &width, &height, &max1);
+        
+    glEnable(GL_TEXTURE_2D);
+    
+    glGenTextures(2, &textures);
+    
+    glBindTexture(GL_TEXTURE_2D, textures);
+    
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, img_data);
+    
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    
+    glClearColor(0, 0, 0, 0);
+    glColor3f(1, 1, 1);    
+
+    /*Let's set up the projection here!*/
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(45,1,1,1000);
+}
+
 int main(int argc, char** argv){
     //configureLighting();
 
@@ -526,6 +629,7 @@ int main(int argc, char** argv){
     
     glShadeModel(GL_SMOOTH);
 
+    projection();
 
     glPolygonMode( GL_FRONT, GL_FILL );
     glPolygonMode( GL_BACK, GL_LINE );
