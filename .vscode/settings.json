@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        "*.pl": "prolog",
         "iostream": "cpp",
         "cmath": "cpp",
         "array": "cpp",
@@ -44,6 +45,8 @@
         "numeric": "cpp",
         "random": "cpp",
         "cstring": "cpp",
-        "map": "cpp"
+        "map": "cpp",
+        "ctime": "cpp",
+        "iomanip": "cpp"
     }
 }

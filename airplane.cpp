@@ -12,7 +12,7 @@ Airplane::Airplane(){};//default constructor, not used
 
 Airplane::Airplane(State state){
     initState=state;
-    mPos=Vec3D(0,50,500);mVel=Vec3D(0,0,-1); 
+    mPos=Vec3D(0,50,300);mVel=Vec3D(0,0,-0.2); 
     mAcc=Vec3D(0,0,0); 
     mOrig=Vec3D(mPos.mX,mPos.mY,mPos.mZ);
 
@@ -32,8 +32,8 @@ void Airplane::update(){
     //cout<<initState;
     if (initState!=PAUSED){
         //cout<<mAcc.mY*500<<"\n";
-        mRot.mX+=(mAcc.mY+gravity*100)*700;   //pitch
-		mRot.mY+=mAcc.mX*350;   //roll
+        mRot.mX+=(mAcc.mY+gravity*250)*900;   //pitch
+		mRot.mY+=mAcc.mX*650;   //roll
 		mRot.mZ-=mAcc.mX*650;  //yaw
         
         //cout<<mAcc.mY*mSpeed<<" before updated \n";
@@ -59,7 +59,10 @@ void Airplane::update(){
 
 void Airplane::slowDown(){
     mAcc.mY-=gravity;
-    mAcc.multiply(0.998f);
-    mVel.multiply(0.995f);
-    mRot.mY*=0.90;
+    mAcc.multiply(.998f);
+    
+    mVel.mX*=0.995f;
+    mVel.mY*=0.995f;
+    //mRot.mZ*=0.95;//yaw 
+    mRot.mY*=0.99;//roll
 }

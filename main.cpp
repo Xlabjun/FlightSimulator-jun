@@ -25,10 +25,16 @@
 #include <string.h>
 #include <time.h>       /* time */
 #include <algorithm>
-#include "terrain.h"
 #include <vector>
 
 using namespace std;
+
+
+struct Circle
+{
+    int x, z;
+	int diam, height;
+};
 
 struct Vertex
 {
@@ -45,7 +51,10 @@ struct VertRef
 
 std::vector< Vertex > model;
 
-terrain heightmap = terrain(500,500);
+const int tWidth=300, tLength=300;
+int maxHeight=6;
+float heightMap[tWidth][tWidth];
+vector<Circle> circleArr (tWidth);
 
 //*******************************************************************************wavefront .obj loader code begins
 std::vector< Vertex > LoadOBJ( std::istream& in )
@@ -134,10 +143,10 @@ std::vector< Vertex > LoadOBJ( std::istream& in )
 //*******************************************************************************wavefront .obj loader code ends here
 
 float xAxisRotation, yAxisRotation;
-bool lightingEnabled=true, fixedCamera=false, texMode=false;
+bool lightingEnabled=false, fixedCamera=false, texMode=true;
 
 int gWidth=1000, gHeight=1000;
-vector<Particle> particleArr(100);//2000-3000 particle capacity  rand()%1000+3000
+vector<Particle> particleArr(1);//2000-3000 particle capacity  rand()%1000+3000
 Point3D mousePos;
 State state = NEUTRAL;
 Airplane airplane=Airplane(state);
@@ -156,36 +165,9 @@ void drawParticle(Particle p) {
 		glRotatef(p.mRot.mX,1,0,0);
 		glRotatef(p.mRot.mY,0,1,0);
 		glRotatef(p.mRot.mZ,0,0,1);
-		
 	glPopMatrix();
 }
-void drawPlane(){
-    for (int x = 0; x < heightmap.gridWid-1; x++) {
-        glBegin(GL_QUADS);
-            for (int z = 0; z < heightmap.gridLen-1; z++) {
-                glColor3f((float)heightmap.hgt[x][z]/30,heightmap.hgt[x][z]/3,(float)heightmap.hgt[x][z]/30);
-                glTexCoord3f(x, heightmap.hgt[x][z], z);
-                glNormal3f(heightmap.normals[x][z].x,heightmap.normals[x][z].y,heightmap.normals[x][z].z);
-                glVertex3f(x, heightmap.hgt[x][z], z);
 
-                glColor3f((float)heightmap.hgt[x][z+1]/30,heightmap.hgt[x][z+1]/3,(float)heightmap.hgt[x][z+1]/30);
-                glTexCoord3f(x, heightmap.hgt[x][z+1], z+1);
-                glNormal3f(heightmap.normals[x][z+1].x,heightmap.normals[x][z+1].y,heightmap.normals[x][z+1].z);
-                glVertex3f(x, heightmap.hgt[x][z+1], z+1);
-                
-                glColor3f((float)heightmap.hgt[x+1][z+1]/30,heightmap.hgt[x+1][z+1]/3,(float)heightmap.hgt[x+1][z+1]/30);
-                glTexCoord3f(x+1, heightmap.hgt[x+1][z+1], z+1);
-                glNormal3f(heightmap.normals[x+1][z+1].x,heightmap.normals[x+1][z+1].y,heightmap.normals[x+1][z+1].z);
-                glVertex3f(x+1, heightmap.hgt[x+1][z+1], z+1);
-                
-                glColor3f((float)heightmap.hgt[x+1][z]/30,heightmap.hgt[x+1][z]/3,(float)heightmap.hgt[x+1][z]/30);
-                glTexCoord3f(x+1, heightmap.hgt[x+1][z], z);
-                glNormal3f(heightmap.normals[x+1][z].x,heightmap.normals[x+1][z].y,heightmap.normals[x+1][z].z);
-                glVertex3f(x+1, heightmap.hgt[x+1][z], z);
-            }
-        glEnd();
-    }
-}
 void drawAirplane(){
    
     glTranslatef(airplane.mPos.mX,airplane.mPos.mY,airplane.mPos.mZ);
@@ -202,7 +184,7 @@ void drawAirplane(){
 
         
         // object
-        glColor3ub( 150, 150, 150 );
+        glColor3ub( 130, 115, 110 );
         glRotatef(airplane.mRot.mX,1,0,0);
 		glRotatef(airplane.mRot.mY,0,1,0);
 		glRotatef(airplane.mRot.mZ,0,0,1);
@@ -224,10 +206,10 @@ void drawAirplane(){
 }
 void collision(){
     if(airplane.initState!=PAUSED) {
-        for (int x = 0; x < heightmap.gridWid; x++) {
-            for (int z = 0; z < heightmap.gridLen; z++) {
-                if ( (abs(airplane.mPos.mX-x)<50) && (abs(airplane.mPos.mZ-z)<50) && (airplane.mPos.mY<heightmap.hgt[x][z])*1.1) {//bounce off ground
-                    airplane.mPos.mY=heightmap.hgt[x][z]+1;
+        for (int x = 0; x < tWidth; x++) {
+            for (int z = 0; z < tLength; z++) {
+                if ( (abs(airplane.mPos.mX-x)<10) && (abs(airplane.mPos.mZ-z)<10) && (airplane.mPos.mY<heightMap[x][z])) {//bounce off ground
+                    airplane.mPos.mY=heightMap[x][z];
                     break;
                 }
             }
@@ -240,7 +222,7 @@ GLdouble centerOffset[] = { 0, 0, 0 };
 
 
 GLfloat lightPos[4] = {
-     250, 300, -500, 1 
+     250, 300, -tWidth, 1 
 };
 GLfloat lightDiffuses[4] = {
      1, 1, 1, 1
@@ -249,7 +231,7 @@ GLfloat lightSpeculars[4] = {
     1, 1, 1, 1
 };
 GLfloat lightAmbients[4] = {
-     1, 1, 1, 0.1 
+     1, 1, 1, 0.8 
 };
 
 
@@ -261,10 +243,55 @@ void configureLighting(){
     glLightfv(GL_LIGHT0, GL_AMBIENT,   lightAmbients);
 }
 
+Vec3D normalsUsingPoints(Point3D startVecA,Point3D endVecA,Point3D startVecB,Point3D endVecB){
+	Vec3D crossProdVecA=Vec3D::createVector(startVecA,endVecA);
+	Vec3D crossProdVecB=Vec3D::createVector(startVecB,endVecB);
+
+	//a2b3-a3b2, a3b1-a1b3, a1b2-a2b1 for cross product to calculate normal
+	Vec3D normalVector = Vec3D(
+	crossProdVecA.mY*crossProdVecB.mZ - crossProdVecA.mZ*crossProdVecB.mY,
+	crossProdVecA.mZ*crossProdVecB.mX - crossProdVecA.mX*crossProdVecB.mZ,
+	crossProdVecA.mX*crossProdVecB.mY - crossProdVecA.mY*crossProdVecB.mX
+	);
+
+	normalVector.normalize();
+	return normalVector;
+}
+Vec3D normMap[tWidth][tWidth];
+
+void drawTerrain(){
+    for(int x = 0; x < tWidth-1; x++) {                                                                                                             
+		for(int z = 0; z < tWidth-1; z++) {
+            
+            glBegin(GL_QUADS);
+                glColor3f(10/(float)heightMap[x][z],0,(float)heightMap[x][z]/15);
+                glTexCoord3f(x, heightMap[x][z], z);
+                glNormal3f(normMap[x][z].mX,normMap[x][z].mY,normMap[x][z].mZ);
+                glVertex3f(x, 		heightMap[x][z], 		 z);
+
+                glColor3f(10/(float)heightMap[x][z],0,(float)heightMap[x][z]/15);
+                glTexCoord3f(x, heightMap[x][z+1], z+1);
+                glNormal3f(normMap[x][z+1].mX,normMap[x][z+1].mY,normMap[x][z+1].mZ);
+                glVertex3f(x, 		heightMap[x][z+1], 		(z+1));
+                
+                glColor3f(10/(float)heightMap[x][z],0,(float)heightMap[x][z]/15);
+                glTexCoord3f(x+1, heightMap[x+1][z+1], z+1);
+                glNormal3f(normMap[x+1][z+1].mX,normMap[x+1][z+1].mY,normMap[x+1][z+1].mZ);
+                glVertex3f((x+1), 	heightMap[x+1][z+1], 	(z+1));
+
+                glColor3f(10/(float)heightMap[x][z],0,(float)heightMap[x][z]/15);
+                glTexCoord3f(x+1, heightMap[x+1][z], z);
+                glNormal3f(normMap[x+1][z].mX,normMap[x+1][z].mY,normMap[x+1][z].mZ);
+                glVertex3f((x+1), 	heightMap[x+1][z],		 z);
+            glEnd();
+        }
+    }
+}
 void display(void) {
     configureLighting();
-    airplane.update();
     collision();
+    airplane.update();
+    
 
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 	
@@ -272,7 +299,7 @@ void display(void) {
 
 	//glMatrixMode( GL_MODELVIEW );
 	if (!fixedCamera){
-    Vec3D offsetVec=airplane.mVel.normalize();
+    Vec3D offsetVec=airplane.mVel.normalize(); offsetVec.multiply(0.5);
         gluLookAt(airplane.mPos.mX-offsetVec.mX+camOffset[0],airplane.mPos.mY-offsetVec.mY+camOffset[1],airplane.mPos.mZ-offsetVec.mZ+camOffset[2], airplane.mPos.mX,airplane.mPos.mY+centerOffset[1],airplane.mPos.mZ, 0,1,0);
 	}else {
         gluLookAt(airplane.mOrig.mX+camOffset[0],airplane.mOrig.mY+camOffset[1]+50,airplane.mOrig.mZ+camOffset[2]+100, 0,0,0, 0,1,0);
@@ -292,9 +319,6 @@ void display(void) {
 		if (particleArr[i].initState!=PAUSED) drawParticle(particleArr[i]);//render
 	}
 	
-
-
-	
 	glPushMatrix();
 		drawAirplane();
 	glPopMatrix();
@@ -308,8 +332,8 @@ void display(void) {
             glEnable(GL_TEXTURE_2D);
             glBindTexture(GL_TEXTURE_2D, textures);
         }
-        glTranslatef(-heightmap.gridWid/2,0,0);
-		drawPlane();
+        glTranslatef(-tWidth/2,0,0);
+		drawTerrain();
 	//pop the matrix back to what it was prior to the rotation
 	glPopMatrix();
 
@@ -319,7 +343,7 @@ void display(void) {
 }
 
 void handleKeyboard(unsigned char key, int _x, int _y) {
-        cout <<"\nlightPos: "<<lightPos[0]<<", "<<lightPos[1]<<", "<<lightPos[2];
+        //cout <<"\nlightPos: "<<lightPos[0]<<", "<<lightPos[1]<<", "<<lightPos[2];
     if (key == 27) {//escape key
         exit(0);
     
@@ -342,7 +366,7 @@ void handleKeyboard(unsigned char key, int _x, int _y) {
     } else if (key == 'a') {
         airplane.mAcc.mX-=0.0001;
     } else if (key == 'w') {
-        cout<<airplane.mVel.mY<<"\n";
+        //cout<<airplane.mVel.mY<<"\n";
 		airplane.mAcc.mY-=0.00005;
     } else if (key == 's') {
         airplane.mAcc.mY+=0.00005;
@@ -428,7 +452,7 @@ void SpecialKeys(int key, int x, int y) {
 
 void FPS(int val){
     glutPostRedisplay();
-    glutTimerFunc(30, FPS, 0); // 1sec = 1000, 60fps = 1000/60 = ~17ms per frame
+    glutTimerFunc(17, FPS, 0); // 1sec = 1000, 60fps = 1000/60 = ~17ms per frame
 }
 
 void callBackInit(){
@@ -442,6 +466,7 @@ void callBackInit(){
 	glCullFace( GL_BACK );
 	glPolygonMode( GL_FRONT, GL_FILL );
     glPolygonMode( GL_BACK, GL_LINE );
+    glDisable(GL_LIGHTING);
 }
 
 void printIntro(){
@@ -458,24 +483,25 @@ void printIntro(){
 	%-32s   %-18s   %-18s\n\n\
 	%-32s   %-18s   %-18s\n\
 	%-32s   %-18s   %-18s\n\
-	%-32s   %-18s   %-18s\n\
 	%-32s   %-18s   %-18s\n\n\
+	%-32s   %-18s   %-18s\n\
+	%-32s   %-18s   %-18s\n\
 	%-32s   %-18s   %-18s\n\n"
 
 	, "FUNCTION",  "Do\\Increase Key", "Decrease Key"
 
 	, "Exit Program", "ESC", ""
 
-
 	, "Yaw left/right", "A", "D"
 	, "Pitch up/down", "S", "W"
 	, "Thrust up/down", "X", "Z"
 
-    , "Fixed/3rd Person Camera", "C", ""
 	, "Camera left/right", "M", "."
 	, "Camera up/down", "K", ","
 	, "Camera in/out of scene", "I", "O"
 
+    , "Textures enable/disable", "V", ""
+    , "Toggle Fixed/Following Cam", "C", ""
 	, "Lighting enable/disable", "L", "");
 
 	printf("\nStudent #: 400062982, name: Erik Kredatus\n\
@@ -587,15 +613,52 @@ void projection(){
     glLoadIdentity();
     gluPerspective(45,1,1,1000);
 }
+void generateHeightMaps(){
+	for(int x = 0; x < tWidth; x++) {                                                                                                             
+		for(int z = 0; z < tWidth; z++) {
+			heightMap[x][z] = 0;
+		}
+	}
 
+    circleArr.clear();
+	for(int i = 0; i < circleArr.capacity(); i++) {
+		Circle tempCirc; tempCirc.x=rand()%tWidth;tempCirc.z=rand()%tWidth;
+		
+		tempCirc.height=(rand()/float(RAND_MAX))*maxHeight;
+		tempCirc.diam=(rand()/float(RAND_MAX))*90+ 10;
+		circleArr.push_back(tempCirc);
+	}
+	
+	for (int i = 0; i < circleArr.capacity(); i++) {
+        for(int x = 0; x < tWidth-1; x++) {                                                                                                             
+            for(int z = 0; z < tWidth-1; z++) {
+				    float pd = sqrt(pow((x-circleArr[i].x),2) + pow((z-circleArr[i].z),2))*2/circleArr[i].diam;
+
+                    if (fabs(pd)<=1.0){
+                        //cout<<"inIf";
+                        heightMap[x][z] +=  maxHeight/2 + cos(pd*3.14)*maxHeight/2;
+                    }
+            }
+        }
+    }
+    for(int x = 0; x < tWidth-1; x+=2) {                                                                                                             
+        for(int z = 0; z < tWidth-1; z+=2) {
+                Point3D firstPoint=Point3D( x, 		heightMap[x][z], 		 z);
+                Point3D secondPoint=Point3D(x, 		heightMap[x][z+1], 		(z+1));
+                Point3D thirdPoint=Point3D((x+1), 	heightMap[x+1][z+1], 	(z+1));
+                Point3D fourthPoint=Point3D((x+1), 	heightMap[x+1][z],		 z);
+
+                normMap[x][z]=normalsUsingPoints(firstPoint,secondPoint,firstPoint,fourthPoint),
+                normMap[x][z+1]=normalsUsingPoints(secondPoint,thirdPoint,secondPoint,firstPoint),
+                normMap[x+1][z+1]=normalsUsingPoints(thirdPoint,fourthPoint,thirdPoint,secondPoint),
+                normMap[x+1][z]=normalsUsingPoints(fourthPoint,firstPoint,fourthPoint,thirdPoint);
+				//cout<<heightMap[x][z]<<"\n";
+		}
+	}
+}
 int main(int argc, char** argv){
-    //configureLighting();
+    generateHeightMaps();
 
-
-    heightmap.circleAlgo(100);
-    //heightmap.faultAlgo(100);
-
-    heightmap.compNorms();
 
     std::ifstream ifile( "data/F16C_US_LOD1_v25.obj" );
     model = LoadOBJ( ifile );
